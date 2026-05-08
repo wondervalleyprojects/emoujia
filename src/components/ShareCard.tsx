@@ -50,8 +50,9 @@ export default function ShareCard({ rulingEmoji, grid, forecast, essence, palett
       </motion.button>
 
       {/* Hidden card for html2canvas to capture */}
-      <div className="fixed left-[-9999px] top-0 pointer-events-none">
+      <div id="share-card-container" className="fixed left-[-9999px] top-0 pointer-events-none">
         <div 
+          id="share-card-canvas"
           ref={cardRef}
           style={{ 
             width: '1080px', 
@@ -62,14 +63,14 @@ export default function ShareCard({ rulingEmoji, grid, forecast, essence, palett
             flexDirection: 'column',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '100px 80px',
+            padding: '80px',
             fontFamily: '"Lora", serif',
             border: `20px solid ${palette.accent}44`,
             boxSizing: 'border-box'
           }}
         >
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '28px', letterSpacing: '0.4em', opacity: 0.7 }}>
+          <div id="share-card-header" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '32px', letterSpacing: '0.4em', opacity: 0.7 }}>
               EMOUJIA
             </div>
             <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '14px', letterSpacing: '0.2em', opacity: 0.4, marginTop: '10px', textAlign: 'center' }}>
@@ -78,35 +79,35 @@ export default function ShareCard({ rulingEmoji, grid, forecast, essence, palett
           </div>
 
           {/* Content Area */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '50px', width: '100%', position: 'relative' }}>
+          <div id="share-card-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '60px', width: '100%', position: 'relative' }}>
             
             {/* Focal Emoji Group - Locked Up */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0px', marginTop: '20px' }}>
-              <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.6em', opacity: 0.6, marginBottom: '10px' }}>
+            <div id="share-card-focal-group" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0px' }}>
+              <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.6em', opacity: 0.6, marginBottom: '5px' }}>
                 The Ruling Sign
               </div>
-              <div style={{ fontSize: '320px', filter: 'drop-shadow(0 0 60px rgba(255,255,255,0.1))', lineHeight: '1', marginTop: '-40px' }}>
+              <div style={{ fontSize: '360px', filter: 'drop-shadow(0 0 60px rgba(255,255,255,0.1))', lineHeight: '1', marginTop: '-20px' }}>
                 {rulingEmoji}
               </div>
             </div>
 
             {/* The Essence */}
-            <div style={{ textAlign: 'center', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-               <div style={{ textAlign: 'center', fontSize: '44px', lineHeight: '1.2', maxWidth: '850px', fontWeight: 500, fontStyle: 'italic', letterSpacing: '-0.02em', color: '#ffffff' }}>
+            <div id="share-card-essence" style={{ textAlign: 'center', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+               <div style={{ textAlign: 'center', fontSize: '48px', lineHeight: '1.2', maxWidth: '900px', fontWeight: 500, fontStyle: 'italic', letterSpacing: '-0.02em', color: '#ffffff' }}>
                  "{essence || forecast || 'The oracle is considering your path.'}"
                </div>
             </div>
 
             {/* Grid Preview */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', fontSize: '44px', justifyContent: 'center', opacity: 0.4 }}>
+            <div id="share-card-grid-preview" style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', fontSize: '48px', justifyContent: 'center', opacity: 0.4 }}>
               {grid.slice(1, 9).map((e, i) => (
                 <span key={i}>{e}</span>
               ))}
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-            <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '18px', letterSpacing: '0.2em', opacity: 0.4 }}>
+          <div id="share-card-footer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+            <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '20px', letterSpacing: '0.2em', opacity: 0.4 }}>
               {appUrl.replace('https://', '').replace('http://', '')}
             </div>
             <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '12px', letterSpacing: '0.1em', opacity: 0.2 }}>
