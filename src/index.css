@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Lora", ui-serif, Georgia, serif;
+  --font-mono: "Space Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-serif: "Lora", ui-serif, Georgia, serif;
+  
+  --color-accent-purple: #7b2fc9;
+  --color-accent-blue: #2a6cb0;
+  --color-text-purple: #e8d5ff;
+}
+
+@layer base {
+  body {
+    @apply bg-[#08001a] text-[#e8d5ff] antialiased min-h-screen font-serif overflow-x-hidden;
+  }
+}
+
+@layer utilities {
+  .bg-glow-top {
+    background: radial-gradient(circle at center, var(--color-accent-purple) 0%, transparent 70%);
+  }
+  .bg-glow-bottom {
+    background: radial-gradient(circle at center, var(--color-accent-blue) 0%, transparent 70%);
+  }
+}
