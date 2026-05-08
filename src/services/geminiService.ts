@@ -83,7 +83,7 @@ YOUR FORECAST
 One sentence only. Not a prediction — a direction. Something you can carry.
 
 THE ESSENCE
-One sentence only. A sharp, definitive summation of who YOU are, according to the grid. Written for a spectator.
+One short phrase only (no full sentences). A sharp, definitive summation of your core identity according to the grid. Use noun phrases like "A diligent observer Masking a profound vulnerability..." or "A fiercely independent soul yearning for connection..." Do NOT use "You are" or "They are". Written for a spectator.
 
 ---
 

@@ -62,32 +62,39 @@ export default function ShareCard({ rulingEmoji, grid, forecast, essence, palett
             flexDirection: 'column',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '80px',
+            padding: '100px 80px',
             fontFamily: '"Lora", serif',
             border: `20px solid ${palette.accent}44`,
             boxSizing: 'border-box'
           }}
         >
-          <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '24px', letterSpacing: '0.4em', opacity: 0.7 }}>
-            EMOUJIA
-          </div>
-          <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '12px', letterSpacing: '0.2em', opacity: 0.4, marginTop: '8px', textAlign: 'center' }}>
-            AN ORACLE FOR YOUR FREQUENTLY USED EMOJI
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '28px', letterSpacing: '0.4em', opacity: 0.7 }}>
+              EMOUJIA
+            </div>
+            <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '14px', letterSpacing: '0.2em', opacity: 0.4, marginTop: '10px', textAlign: 'center' }}>
+              AN ORACLE FOR YOUR FREQUENTLY USED EMOJI
+            </div>
           </div>
 
           {/* Content Area */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '40px', width: '100%', position: 'relative' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '50px', width: '100%', position: 'relative' }}>
             
-            {/* The Reading Focus */}
-            <div style={{ textAlign: 'center', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-               <div style={{ textAlign: 'center', fontSize: '48px', lineHeight: '1.3', maxWidth: '850px', fontWeight: 500, fontStyle: 'italic', letterSpacing: '-0.02em', color: '#ffffff' }}>
-                 "{essence || forecast || 'The oracle is considering your path.'}"
-               </div>
+            {/* Focal Emoji Group - Locked Up */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0px', marginTop: '20px' }}>
+              <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.6em', opacity: 0.6, marginBottom: '10px' }}>
+                The Ruling Sign
+              </div>
+              <div style={{ fontSize: '320px', filter: 'drop-shadow(0 0 60px rgba(255,255,255,0.1))', lineHeight: '1', marginTop: '-40px' }}>
+                {rulingEmoji}
+              </div>
             </div>
 
-            {/* Focal Emoji */}
-            <div style={{ fontSize: '240px', filter: 'drop-shadow(0 0 50px rgba(255,255,255,0.15))', margin: '20px 0' }}>
-              {rulingEmoji}
+            {/* The Essence */}
+            <div style={{ textAlign: 'center', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+               <div style={{ textAlign: 'center', fontSize: '44px', lineHeight: '1.2', maxWidth: '850px', fontWeight: 500, fontStyle: 'italic', letterSpacing: '-0.02em', color: '#ffffff' }}>
+                 "{essence || forecast || 'The oracle is considering your path.'}"
+               </div>
             </div>
 
             {/* Grid Preview */}

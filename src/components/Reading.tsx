@@ -41,7 +41,7 @@ export default function Reading({ reading }: ReadingProps) {
               <h2 className="font-mono text-xs uppercase tracking-tighter text-[#7b2fc9]">
                 {section.header}
               </h2>
-              <div className={`leading-relaxed text-lg ${section.header === 'YOUR FORECAST' ? 'text-xl md:text-2xl italic text-white font-medium border-t border-white/10 pt-8 mt-8' : 'opacity-90 font-serif'}`}>
+              <div className={`leading-relaxed text-lg ${section.header === 'YOUR FORECAST' ? 'text-xl md:text-2xl italic text-white font-medium mb-8' : 'opacity-90 font-serif'}`}>
                  {section.content.split('\n').map((para, k) => (
                    <p key={k} className="mb-4">{para}</p>
                  ))}
