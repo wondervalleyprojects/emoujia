@@ -6,13 +6,13 @@ interface ReadingProps {
 
 export default function Reading({ reading }: ReadingProps) {
   // Parsing the reading into sections based on the prompt's ALL-CAPS headers
-  const sections = reading.split(/(THE RULING SIGN|THE SHADOW|THE READING|YOUR FORECAST)/g);
+  const sections = reading.split(/(THE RULING SIGN|THE SHADOW|THE READING|YOUR FORECAST|THE ESSENCE)/g);
   
   const parsedSections = [];
   for (let i = 1; i < sections.length; i += 2) {
     const header = sections[i];
     const content = sections[i + 1]?.trim();
-    if (header && content) {
+    if (header && content && header !== 'THE ESSENCE') {
       parsedSections.push({ header, content });
     }
   }

@@ -7,10 +7,11 @@ interface ShareCardProps {
   rulingEmoji: string;
   grid: string[];
   forecast: string;
+  essence: string;
   palette: Palette;
 }
 
-export default function ShareCard({ rulingEmoji, grid, forecast, palette }: ShareCardProps) {
+export default function ShareCard({ rulingEmoji, grid, forecast, essence, palette }: ShareCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const appUrl = import.meta.env.VITE_APP_URL || 'emoujia.app';
 
@@ -55,7 +56,7 @@ export default function ShareCard({ rulingEmoji, grid, forecast, palette }: Shar
           style={{ 
             width: '1080px', 
             height: '1080px', 
-            backgroundColor: palette.bg,
+            background: `radial-gradient(circle at 50% 50%, ${palette.bg}, ${palette.bg} 40%, ${palette.accent}22 100%)`,
             color: palette.text,
             display: 'flex',
             flexDirection: 'column',
@@ -63,12 +64,15 @@ export default function ShareCard({ rulingEmoji, grid, forecast, palette }: Shar
             alignItems: 'center',
             padding: '80px',
             fontFamily: '"Lora", serif',
-            border: `20px solid ${palette.accent}22`,
+            border: `20px solid ${palette.accent}44`,
             boxSizing: 'border-box'
           }}
         >
           <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '24px', letterSpacing: '0.4em', opacity: 0.7 }}>
             EMOUJIA
+          </div>
+          <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '12px', letterSpacing: '0.2em', opacity: 0.4, marginTop: '8px', textAlign: 'center' }}>
+            AN ORACLE FOR YOUR FREQUENTLY USED EMOJI
           </div>
 
           {/* Content Area */}
@@ -76,11 +80,8 @@ export default function ShareCard({ rulingEmoji, grid, forecast, palette }: Shar
             
             {/* The Reading Focus */}
             <div style={{ textAlign: 'center', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-               <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.4em', opacity: 0.5, marginBottom: '20px' }}>
-                 Your Forecast
-               </div>
                <div style={{ textAlign: 'center', fontSize: '48px', lineHeight: '1.3', maxWidth: '850px', fontWeight: 500, fontStyle: 'italic', letterSpacing: '-0.02em', color: '#ffffff' }}>
-                 "{forecast || 'The oracle is considering your path.'}"
+                 "{essence || forecast || 'The oracle is considering your path.'}"
                </div>
             </div>
 

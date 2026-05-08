@@ -48,11 +48,13 @@ export default function App() {
   }, [emojis]);
 
   const forecast = useMemo(() => {
-    const sections = reading.split(/YOUR FORECAST/i);
-    if (sections.length > 1) {
-      return sections[sections.length - 1].trim();
-    }
-    return '';
+    const match = reading.match(/YOUR FORECAST\n([\s\S]*?)(?=\n\n(?:THE ESSENCE|---)|$)/i);
+    return match ? match[1].trim() : '';
+  }, [reading]);
+
+  const essence = useMemo(() => {
+    const match = reading.match(/THE ESSENCE\n([\s\S]*?)(?=\n---|$)/i);
+    return match ? match[1].trim() : '';
   }, [reading]);
 
   const loadingText = useMemo(() => {
@@ -130,6 +132,7 @@ export default function App() {
                rulingEmoji={emojis[0]} 
                grid={emojis} 
                forecast={forecast} 
+               essence={essence}
                palette={palette} 
              />
              <div className="flex justify-center">

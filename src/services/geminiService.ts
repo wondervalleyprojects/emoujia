@@ -64,27 +64,30 @@ export async function generateReading(emojis: string[]): Promise<string> {
 
 Existing Emojis to read: ${emojiStr}
 
-Your reading has four sections. Write each with a plain ALL-CAPS header (no markdown), then a line break, then the body.
+Your reading has five sections. Write each with a plain ALL-CAPS header (no markdown), then a line break, then the body.
 
-Tone: straight face, dry edge. Matter-of-fact about strange things. Not ironic. Not mystical-performative. Like a tarot reader who has done ten thousand readings and is no longer surprised by anything. Use the actual emoji characters as anchors in the text. Be specific. Be a little uncomfortable. Don't explain — state.
+Tone: straight face, dry edge. Matter-of-fact about strange things. Not ironic. Not mystical-performative. Address the user directly as "you". Like a tarot reader who has done ten thousand readings and is no longer surprised by anything. Use the actual emoji characters as anchors in the text. Be specific. Be a little uncomfortable. Don't explain — state.
 
 ---
 
 THE RULING SIGN
-One tight paragraph. The first emoji in the grid is the ruling sign. What does it reveal about how this person presents themselves — and what that presentation costs them? Be specific to this emoji.
+One tight paragraph. The first emoji in the grid is the ruling sign. What does it reveal about how YOU present yourself — and what that presentation costs you? Be specific to this emoji. Use "You" and "Your".
 
 THE SHADOW
-One paragraph. One emoji from the grid that reveals something the person likely hasn't consciously tracked — a pattern, an avoidance, a contradiction they're not quite aware of.
+One paragraph. One emoji from the grid that reveals something YOU likely haven't consciously tracked — a pattern, an avoidance, a contradiction you're not quite aware of.
 
 THE READING
-Three to four paragraphs. Synthesize the full grid into a portrait: emotional register, relational patterns, what they're reaching for, what they're suppressing. Use specific emoji as evidence. Acute. Kind but not reassuring.
+Three to four paragraphs. Synthesize the full grid into a portrait: your emotional register, relational patterns, what you're reaching for, what you're suppressing. Use specific emoji as evidence. Acute. Kind but not reassuring. Use "You".
 
 YOUR FORECAST
-One sentence only. Not a prediction — a direction. Something they can carry.
+One sentence only. Not a prediction — a direction. Something you can carry.
+
+THE ESSENCE
+One sentence only. A sharp, definitive summation of who YOU are, according to the grid. Written for a spectator.
 
 ---
 
-Write nothing outside these four sections. No preamble. No sign-off. No "I hope this reading resonates."`;
+Write nothing outside these five sections. No preamble. No sign-off. No "I hope this reading resonates."`;
 
   const response = await ai.models.generateContent({
     model,
