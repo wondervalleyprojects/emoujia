@@ -15,13 +15,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const firebaseConfig = {
-  projectId: 'gen-lang-client-0365094838',
-  appId: '1:907908129152:web:26241f84d0c573d81ce165',
-  apiKey: 'AIzaSyBe_EAD8EQiQX8R28CUGPC-d1ZcoshRd4Q',
-  authDomain: 'gen-lang-client-0365094838.firebaseapp.com',
-  firestoreDatabaseId: 'ai-studio-ba8645f8-a857-4aaf-afb0-8024a7560e64',
-  storageBucket: 'gen-lang-client-0365094838.firebasestorage.app',
-  messagingSenderId: '907908129152',
+  projectId: process.env.FIREBASE_PROJECT_ID || 'gen-lang-client-0365094838',
+  appId: process.env.FIREBASE_APP_ID || '1:907908129152:web:26241f84d0c573d81ce165',
+  apiKey: process.env.FIREBASE_API_KEY || 'AIzaSyBe_EAD8EQiQX8R28CUGPC-d1ZcoshRd4Q',
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN || 'gen-lang-client-0365094838.firebaseapp.com',
+  firestoreDatabaseId: process.env.FIREBASE_DATABASE_ID || 'ai-studio-ba8645f8-a857-4aaf-afb0-8024a7560e64',
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'gen-lang-client-0365094838.firebasestorage.app',
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || '907908129152',
 };
 
 const clientApp = initializeClientApp(firebaseConfig);
@@ -308,7 +308,7 @@ Return ONLY valid JSON. No markdown. No commentary.`;
               await transporter.sendMail({
                 from: { name: "Emoujia System", address: senderEmail },
                 replyTo: senderEmail,
-                to: 'japhy@wondervalleyprojects.com',
+                to: process.env.GMAIL_USER || 'japhy@wondervalleyprojects.com',
                 subject: `Emoujia: Scheduled Subscriber Export (${now.toISOString().split('T')[0]})`,
                 text: "Attached is the latest subscriber list for your Substack import.",
                 attachments: [{ filename: `subscribers_${now.toISOString().split('T')[0]}.csv`, content: csv }]
