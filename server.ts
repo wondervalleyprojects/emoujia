@@ -5,7 +5,10 @@ import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
 import { stringify } from 'csv-stringify/sync';
 import { GoogleGenAI } from "@google/genai";
+import * as dotenv from 'dotenv';
 import { initializeApp as initializeClientApp } from 'firebase/app';
+
+dotenv.config();
 import { getFirestore as getClientFirestore, collection, addDoc, doc, setDoc, serverTimestamp, getDocs, query, orderBy } from 'firebase/firestore';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -29,6 +32,12 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(express.json({ limit: '10mb' }));
+
+  // Request logger
+  app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+  });
 
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
@@ -243,6 +252,11 @@ Return ONLY valid JSON. No markdown. No commentary.`;
       console.error("Error exporting subscribers:", error);
       res.status(500).json({ error: error.message });
     }
+  });
+
+  // Catch-all for API routes that don't exist
+  app.all('/api/*', (req, res) => {
+    res.status(404).json({ error: `API endpoint ${req.method} ${req.path} not found` });
   });
 
   // Vite middleware for development

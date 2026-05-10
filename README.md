@@ -32,10 +32,24 @@ EMOUJIA uses **Google Gemini 1.5 Flash** (vision) to analyze a screenshot of a u
     -   `GMAIL_APP_PASSWORD`: A 16-character Google App Password.
 4.  `npm run dev`
 
+## Deployment (Netlify)
+This project is configured for one-click deployment to Netlify.
+
+1.  Connect your GitHub repository to Netlify.
+2.  Set the following **Environment Variables** in the Netlify UI:
+    -   `GEMINI_API_KEY`: Your Google AI Studio key.
+    -   `GMAIL_USER`: Your Gmail address.
+    -   `GMAIL_APP_PASSWORD`: Your 16-character App Password.
+    -   `VITE_APP_URL`: Your final Netlify URL (e.g., `https://emoujia.netlify.app`).
+3.  The `netlify.toml` file automatically configures the build and API routes.
+
+### Handling Scheduled Exports
+Netlify Functions have an execution limit. For bi-weekly subscriber exports, it is recommended to use **Netlify Scheduled Functions** (requires a Pro plan or custom cron triggers) or a separate GitHub Action that calls the `/api/admin/export-subscribers` endpoint.
+
 ## Tech Stack
 -   **Frontend**: React 19, Vite, Tailwind CSS, Motion.
--   **Backend**: Express.js server and API routes.
--   **AI**: Google Gemini Flash via `@google/genai`.
+-   **Serverless Backend**: Netlify Functions (Express via `serverless-http`).
+-   **AI**: Google Gemini 1.5 Flash via `@google/genai`.
 -   **Database**: Firestore for readings and subscriber management.
 -   **Email**: Nodemailer with Gmail SMTP.
 -   **Utilities**: `html2canvas` for image generation, `csv-stringify` for exports.
