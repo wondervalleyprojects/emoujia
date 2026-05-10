@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
 import { stringify } from 'csv-stringify/sync';
+import { GoogleGenAI } from "@google/genai";
 import { initializeApp as initializeClientApp } from 'firebase/app';
 import { getFirestore as getClientFirestore, collection, addDoc, doc, setDoc, serverTimestamp, getDocs, query, orderBy } from 'firebase/firestore';
 
@@ -29,8 +30,85 @@ async function startServer() {
 
   app.use(express.json({ limit: '10mb' }));
 
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+
   // API Routes
   
+  // Gemini Analysis Route
+  app.post('/api/analyze', async (req, res) => {
+    const { image } = req.body;
+    if (!image) return res.status(400).json({ error: 'Image data is required' });
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return res.status(500).json({ error: 'Oracle connection failed: missing server key.' });
+
+    try {
+      const model = "gemini-1.5-flash"; // Using standard flash for production stability
+      const prompt = `You are EMOUJIA — an oracle that reads emoji the way a palmist reads a hand. 
+  
+The user has provided a screenshot of their emoji keyboard's "Frequently Used" section.
+
+FIRST: Extract every single emoji from the image with 100% accuracy.
+Identification Checklist:
+- Phoenix (Bird of fire): 🐦‍🔥 (Not 🦚)
+- Backhand Index Pointing Up: 👆 (Not ☝️)
+- Smiling Face with Tear: 🥲 (Not 😢 or 😭)
+- Face with Spiral Eyes: 😵‍💫 (Not 😵 or 😶‍🌫️)
+- Expanding Heart: 💗 (Not ✨💖 or 💓)
+- Face in Clouds: 😶‍🌫️ (Not 💨)
+Order: left to right, top to bottom.
+
+SECOND: Generate a reading based on these emojis.
+Your reading has five sections. Write each with a plain ALL-CAPS header (no markdown), then a line break, then the body.
+
+Tone: straight face, dry edge. Matter-of-fact about strange things. Address the user directly as "you". Sprinkle relevant emojis liberally throughout the text of the reading to maintain the oracle's visual language.
+
+Sections:
+1. THE RULING SIGN: One tight paragraph on the first emoji.
+2. THE SHADOW: One paragraph on an overlooked pattern from the grid.
+3. THE READING: Three to four paragraphs synthesizing the full grid.
+4. YOUR FORECAST: One sentence direction.
+5. THE ESSENCE: One short phrase summation for a spectator. Do NOT use "You are".
+
+OUTPUT FORMAT:
+Return a JSON object with two keys:
+"emojis": string[] (the list of extracted emojis)
+"reading": string (the full reading text following the headers above)
+
+Example Output:
+{
+  "emojis": ["🔥", "🫠", "🐈‍⬛"],
+  "reading": "THE RULING SIGN\\n...\\n\\nTHE SHADOW\\n...\\n\\nTHE READING\\n...\\n\\nYOUR FORECAST\\n...\\n\\nTHE ESSENCE\\n..."
+}
+
+Return ONLY valid JSON. No markdown. No commentary.`;
+
+      const mimeType = image.split(";")[0].split(":")[1] || "image/png";
+      const data = image.split(",")[1] || image;
+
+      const imagePart = {
+        inlineData: { mimeType, data },
+      };
+
+      const result = await ai.models.generateContent({
+        model,
+        contents: [{ role: 'user', parts: [{ text: prompt }, imagePart] }]
+      });
+      const text = result.text || "{}";
+      const cleaned = text.replace(/```json\n?|\n?```/g, "").replace(/```\n?|\n?```/g, "").trim();
+      const parsed = JSON.parse(cleaned);
+
+      if (!parsed.emojis || !parsed.reading) {
+        throw new Error("The oracle returned an incomplete sequence.");
+      }
+
+      res.json(parsed);
+    } catch (error: any) {
+      console.error("Gemini Error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Send Reading Email
   app.post('/api/send-reading', async (req, res) => {
     const { email, readingText, essence, shareCardImage, optIn } = req.body;
