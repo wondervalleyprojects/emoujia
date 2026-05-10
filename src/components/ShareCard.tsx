@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useImperativeHandle, forwardRef } from 'react';
 import html2canvas from 'html2canvas';
 import { Palette } from '../utils/emojiPalettes';
 import { motion } from 'motion/react';
@@ -11,32 +11,47 @@ interface ShareCardProps {
   palette: Palette;
 }
 
-export default function ShareCard({ rulingEmoji, grid, forecast, essence, palette }: ShareCardProps) {
+export interface ShareCardHandle {
+  capture: () => Promise<string | null>;
+  download: () => Promise<void>;
+}
+
+const ShareCard = forwardRef<ShareCardHandle, ShareCardProps>(({ rulingEmoji, grid, forecast, essence, palette }, ref) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const appUrl = import.meta.env.VITE_APP_URL || 'emoujia.app';
 
-  const downloadImage = async () => {
-    if (!cardRef.current) return;
-    
-    // Temporarily show the card in full size for rendering
-    const card = cardRef.current;
-    
+  const captureImage = async (): Promise<string | null> => {
+    if (!cardRef.current) return null;
     try {
-      const canvas = await html2canvas(card, {
+      const canvas = await html2canvas(cardRef.current, {
         width: 1080,
         height: 1080,
         scale: 1,
         backgroundColor: palette.bg,
+        logging: false,
+        useCORS: true
       });
-      
-      const link = document.createElement('a');
-      link.download = 'emoujia-reading.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+      return canvas.toDataURL('image/png');
     } catch (err) {
-      console.error("Failed to share", err);
+      console.error("Failed to capture image", err);
+      return null;
     }
   };
+
+  const downloadImage = async () => {
+    const dataUrl = await captureImage();
+    if (dataUrl) {
+      const link = document.createElement('a');
+      link.download = 'emoujia-reading.png';
+      link.href = dataUrl;
+      link.click();
+    }
+  };
+
+  useImperativeHandle(ref, () => ({
+    capture: captureImage,
+    download: downloadImage
+  }));
 
   return (
     <div className="flex flex-col items-center py-12">
@@ -46,7 +61,7 @@ export default function ShareCard({ rulingEmoji, grid, forecast, essence, palett
         onClick={downloadImage}
         className="px-10 py-3 rounded-full border border-[#7b2fc9] bg-[#7b2fc9]/10 text-xs font-mono uppercase tracking-widest hover:bg-[#7b2fc9]/30 transition-all transition-colors mb-8"
       >
-        Generate Share Card
+        Download Share Card
       </motion.button>
 
       {/* Hidden card for html2canvas to capture */}
@@ -118,4 +133,6 @@ export default function ShareCard({ rulingEmoji, grid, forecast, essence, palett
       </div>
     </div>
   );
-}
+});
+
+export default ShareCard;

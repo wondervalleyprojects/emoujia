@@ -1,15 +1,15 @@
 import { GoogleGenAI } from "@google/genai";
 
-const apiKey = process.env.GEMINI_API_KEY || (import.meta as any).env?.VITE_GOOGLE_GEMINI_API_KEY || '';
+const apiKey = process.env.GEMINI_API_KEY || '';
 const ai = new GoogleGenAI({ apiKey });
 
-export async function readEmojisFromImage(base64Image: string): Promise<string[]> {
-  const model = "gemini-2.0-flash"; // Latest requested model
-  const prompt = `You are a hyper-precise emoji analyst. The user has uploaded a screenshot of their iPhone emoji keyboard's "Frequently Used" section. 
+export async function generateFullReading(base64Image: string): Promise<{ emojis: string[], reading: string }> {
+  const model = "gemini-3-flash-preview"; 
+  const prompt = `You are EMOUJIA — an oracle that reads emoji the way a palmist reads a hand. 
+  
+The user has provided a screenshot of their emoji keyboard's "Frequently Used" section.
 
-Your task is to identify every single emoji with 100% accuracy, paying extreme attention to subtle variants. 
-DO NOT simplify. If it is a Phoenix, do not say Peacock. If it is a Smiling Face with Tear, do not say Crying Face.
-
+FIRST: Extract every single emoji from the image with 100% accuracy.
 Identification Checklist:
 - Phoenix (Bird of fire): 🐦‍🔥 (Not 🦚)
 - Backhand Index Pointing Up: 👆 (Not ☝️)
@@ -17,14 +17,34 @@ Identification Checklist:
 - Face with Spiral Eyes: 😵‍💫 (Not 😵 or 😶‍🌫️)
 - Expanding Heart: 💗 (Not ✨💖 or 💓)
 - Face in Clouds: 😶‍🌫️ (Not 💨)
-- Distinguish between all heart types (sparkling, beating, growing, etc.)
-
 Order: left to right, top to bottom.
-Return ONLY a valid JSON array of emoji characters. No markdown, no commentary.
-Example: ["🔥", "🧊", "🫠", "🐈‍⬛"]`;
+
+SECOND: Generate a reading based on these emojis.
+Your reading has five sections. Write each with a plain ALL-CAPS header (no markdown), then a line break, then the body.
+
+Tone: straight face, dry edge. Matter-of-fact about strange things. Address the user directly as "you". Sprinkle relevant emojis liberally throughout the text of the reading to maintain the oracle's visual language.
+
+Sections:
+1. THE RULING SIGN: One tight paragraph on the first emoji.
+2. THE SHADOW: One paragraph on an overlooked pattern from the grid.
+3. THE READING: Three to four paragraphs synthesizing the full grid.
+4. YOUR FORECAST: One sentence direction.
+5. THE ESSENCE: One short phrase summation for a spectator. Do NOT use "You are".
+
+OUTPUT FORMAT:
+Return a JSON object with two keys:
+"emojis": string[] (the list of extracted emojis)
+"reading": string (the full reading text following the headers above)
+
+Example Output:
+{
+  "emojis": ["🔥", "🫠", "🐈‍⬛"],
+  "reading": "THE RULING SIGN\\n...\\n\\nTHE SHADOW\\n...\\n\\nTHE READING\\n...\\n\\nYOUR FORECAST\\n...\\n\\nTHE ESSENCE\\n..."
+}
+
+Return ONLY valid JSON. No markdown. No commentary.`;
 
   if (!apiKey) {
-    console.error("GEMINI_API_KEY is missing from environment");
     throw new Error("Oracle connection failed: missing key.");
   }
 
@@ -33,66 +53,26 @@ Example: ["🔥", "🧊", "🫠", "🐈‍⬛"]`;
     const data = base64Image.split(",")[1] || base64Image;
 
     const imagePart = {
-      inlineData: {
-        mimeType,
-        data,
-      },
+      inlineData: { mimeType, data },
     };
 
-    console.log("Calling Gemini for emoji extraction...");
+    console.log("Calling Gemini for combined extraction and reading...");
     const response = await ai.models.generateContent({
       model,
       contents: { parts: [imagePart, { text: prompt }] },
     });
 
-    const text = response.text || "[]";
-    console.log("Raw response from Gemini:", text);
+    const text = response.text || "{}";
+    const cleaned = text.replace(/```json\n?|\n?```/g, "").replace(/```\n?|\n?```/g, "").trim();
+    const result = JSON.parse(cleaned);
 
-    // Clean potential markdown if the model ignored the "no markdown" instruction
-    const jsonStr = text.replace(/```json\n?|\n?```/g, "").replace(/```\n?|\n?```/g, "").trim();
-    return JSON.parse(jsonStr);
+    if (!result.emojis || !result.reading) {
+      throw new Error("The oracle returned an incomplete sequence.");
+    }
+
+    return result;
   } catch (e) {
-    console.error("Failed to read emojis from image", e);
+    console.error("Combined reading failed", e);
     throw e;
   }
-}
-
-export async function generateReading(emojis: string[]): Promise<string> {
-  const model = "gemini-2.0-flash";
-  const emojiStr = emojis.join(", ");
-  const prompt = `You are EMOUJIA — an oracle that reads emoji the way a palmist reads a hand or a Ouija board reads a room. You have been given a person's frequently used emoji: the symbols they reached for, over and over, in private and public conversations. They did not consciously choose these. They accumulated.
-
-Existing Emojis to read: ${emojiStr}
-
-Your reading has five sections. Write each with a plain ALL-CAPS header (no markdown), then a line break, then the body.
-
-Tone: straight face, dry edge. Matter-of-fact about strange things. Not ironic. Not mystical-performative. Address the user directly as "you". Like a tarot reader who has done ten thousand readings and is no longer surprised by anything. Use the actual emoji characters as anchors in the text. Be specific. Be a little uncomfortable. Don't explain — state.
-
----
-
-THE RULING SIGN
-One tight paragraph. The first emoji in the grid is the ruling sign. What does it reveal about how YOU present yourself — and what that presentation costs you? Be specific to this emoji. Use "You" and "Your".
-
-THE SHADOW
-One paragraph. One emoji from the grid that reveals something YOU likely haven't consciously tracked — a pattern, an avoidance, a contradiction you're not quite aware of.
-
-THE READING
-Three to four paragraphs. Synthesize the full grid into a portrait: your emotional register, relational patterns, what you're reaching for, what you're suppressing. Use specific emoji as evidence. Acute. Kind but not reassuring. Use "You".
-
-YOUR FORECAST
-One sentence only. Not a prediction — a direction. Something you can carry.
-
-THE ESSENCE
-One short phrase only (no full sentences). A sharp, definitive summation of your core identity according to the grid. Use noun phrases like "A diligent observer Masking a profound vulnerability..." or "A fiercely independent soul yearning for connection..." Do NOT use "You are" or "They are". Written for a spectator.
-
----
-
-Write nothing outside these five sections. No preamble. No sign-off. No "I hope this reading resonates."`;
-
-  const response = await ai.models.generateContent({
-    model,
-    contents: prompt,
-  });
-
-  return response.text || "";
 }

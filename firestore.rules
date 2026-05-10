@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.size() <= 256 && email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$');
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Subscribers collection
+    match /subscribers/{email} {
+      allow get, list: if false; // Prevents public scraping
+      allow create, update: if true; // Allows submissions
+    }
+
+    // Readings collection
+    match /readings/{readingId} {
+      allow get, list: if false; // Prevents public scraping
+      allow create: if true; // Allows saving readings
+      allow update, delete: if false;
+    }
+  }
+}

@@ -11,7 +11,8 @@ export default function Reading({ reading }: ReadingProps) {
   const parsedSections = [];
   for (let i = 1; i < sections.length; i += 2) {
     const header = sections[i];
-    const content = sections[i + 1]?.trim();
+    // Trim and clean leading/trailing whitespace including indentation
+    const content = sections[i + 1]?.trim().replace(/^[ \t]+/gm, ''); 
     if (header && content && header !== 'THE ESSENCE') {
       parsedSections.push({ header, content });
     }
@@ -51,10 +52,12 @@ export default function Reading({ reading }: ReadingProps) {
         </div>
       </motion.div>
       
-      <div className="mt-12 text-[10px] font-mono uppercase tracking-[0.3em] opacity-30 text-center">
-        <a href="https://www.wondervalleyprojects.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-100 transition-opacity">
-          a lab project
-        </a>
+      <div className="mt-12 text-center">
+        <p className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-30">
+          <a href="https://www.wondervalleyprojects.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-100 transition-opacity underline underline-offset-4">
+            A Wonder Valley Projects Lab
+          </a>
+        </p>
       </div>
     </div>
   );
