@@ -322,7 +322,7 @@ Return ONLY valid JSON. No markdown. No commentary.`;
                 text: "Attached is the latest subscriber list for your Substack import.",
                 attachments: [{ filename: `subscribers_${now.toISOString().split('T')[0]}.csv`, content: csv }]
               });
-              console.log("Scheduled export sent to japhy@wondervalleyprojects.com");
+              console.log("Scheduled export sent to", gmailUser);
             }
           }
         } catch (err) {
