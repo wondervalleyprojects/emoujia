@@ -2,6 +2,7 @@ import { useRef, useImperativeHandle, forwardRef } from 'react';
 import html2canvas from 'html2canvas';
 import { Palette } from '../utils/emojiPalettes';
 import { motion } from 'motion/react';
+import { WonderValleyLogo } from './Footer';
 
 interface ShareCardProps {
   rulingEmoji: string;
@@ -121,12 +122,15 @@ const ShareCard = forwardRef<ShareCardHandle, ShareCardProps>(({ rulingEmoji, gr
             </div>
           </div>
 
-          <div id="share-card-footer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+          <div id="share-card-footer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
             <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '20px', letterSpacing: '0.2em', opacity: 0.4 }}>
               {appUrl.replace('https://', '').replace('http://', '')}
             </div>
-            <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '12px', letterSpacing: '0.1em', opacity: 0.2 }}>
-              A WONDER VALLEY PROJECTS LAB
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', opacity: 0.4 }}>
+              <WonderValleyLogo size={36} />
+              <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '11px', letterSpacing: '0.3em', opacity: 0.6, textTransform: 'uppercase' }}>
+                a companion lab project
+              </div>
             </div>
           </div>
         </div>

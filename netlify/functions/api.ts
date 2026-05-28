@@ -142,7 +142,7 @@ router.post(['/send-reading', '/api/send-reading'], async (req, res) => {
       auth: { user: gmailUser, pass: gmailPass }
     });
 
-    const senderEmail = 'emoujia@wondervalleyprojects.com';
+    const senderEmail = gmailUser;
     const emailBodyText = readingText
       .split(/THE ESSENCE/i)[0]
       .replace(/^[ \t]+/gm, '')

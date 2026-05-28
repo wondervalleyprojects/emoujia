@@ -53,7 +53,7 @@ const gmailPass = process.env.GMAIL_APP_PASSWORD;
       }
     });
 
-    const senderEmail = 'emoujia@wondervalleyprojects.com';
+    const senderEmail = gmailUser;
     await transporter.sendMail({
       from: { name: "Emoujia System", address: senderEmail },
       replyTo: senderEmail,

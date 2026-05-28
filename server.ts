@@ -162,7 +162,7 @@ Return ONLY valid JSON. No markdown. No commentary.`;
         }
       });
 
-      const senderEmail = 'emoujia@wondervalleyprojects.com'; // Use alias for 'from'
+      const senderEmail = gmailUser; // Use authenticated gmailUser to ensure Gmail server allows delivery
       
       // Clean up reading text for email (remove essence and fix indentation)
       const emailBodyText = readingText
@@ -313,7 +313,7 @@ Return ONLY valid JSON. No markdown. No commentary.`;
             
             if (gmailUser && gmailPass) {
               const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: gmailUser, pass: gmailPass } });
-              const senderEmail = 'emoujia@wondervalleyprojects.com';
+              const senderEmail = gmailUser;
               await transporter.sendMail({
                 from: { name: "Emoujia System", address: senderEmail },
                 replyTo: senderEmail,
