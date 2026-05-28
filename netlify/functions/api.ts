@@ -113,23 +113,50 @@ router.post(['/send-reading', '/api/send-reading'], async (req, res) => {
     return res.status(400).json({ error: 'Email and reading text are required' });
   }
 
+  // Helper function to handle async calls with a timeout
+  const withTimeout = <T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> => {
+    return Promise.race([
+      promise,
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error(`${label} timed out after ${timeoutMs}ms`)), timeoutMs))
+    ]);
+  };
+
   try {
-    if (optIn) {
-      await setDoc(doc(db, 'subscribers', email.toLowerCase()), {
-        email: email.toLowerCase(),
-        subscribedAt: serverTimestamp(),
-        source: 'reading_form'
-      }, { merge: true });
+    try {
+      // 1. Store/Update Subscriber if opted in with 2 second timeout
+      if (optIn) {
+        console.log("[DB] Attempting to store subscriber...");
+        await withTimeout(
+          setDoc(doc(db, 'subscribers', email.toLowerCase()), {
+            email: email.toLowerCase(),
+            subscribedAt: serverTimestamp(),
+            source: 'reading_form'
+          }, { merge: true }),
+          2000,
+          "Firestore subscriber save"
+        );
+        console.log("[DB] Subscriber stored successfully.");
+      }
+
+      // 2. Store Reading with 2 second timeout
+      console.log("[DB] Attempting to store reading...");
+      await withTimeout(
+        addDoc(collection(db, 'readings'), {
+          email: email.toLowerCase(),
+          readingText,
+          essence,
+          createdAt: serverTimestamp(),
+          optIn: !!optIn
+        }),
+        2000,
+        "Firestore reading save"
+      );
+      console.log("[DB] Reading stored successfully.");
+    } catch (dbError: any) {
+      console.warn("[DB Warning] Failed or timed out writing to Firestore database. Proceeding to send email anyway. Error:", dbError.message || dbError);
     }
 
-    await addDoc(collection(db, 'readings'), {
-      email: email.toLowerCase(),
-      readingText,
-      essence,
-      createdAt: serverTimestamp(),
-      optIn: !!optIn
-    });
-
+    // 3. Send Email
     const gmailUser = process.env.GMAIL_USER;
     const gmailPass = process.env.GMAIL_APP_PASSWORD;
 
@@ -186,32 +213,55 @@ router.post(['/send-reading', '/api/send-reading'], async (req, res) => {
       `
     };
 
-    // SMTP delivery config chain (Direct TLS port 465, then STARTTLS port 587)
-    const smtpConfigs = [
-      { host: 'smtp.gmail.com', port: 465, secure: true },
-      { host: 'smtp.gmail.com', port: 587, secure: false }
+    // SMTP transporter fallback configurations
+    const transporters = [
+      {
+        name: "Gmail Service Agent (Recommended)",
+        config: {
+          service: 'gmail',
+          auth: { user: gmailUser, pass: gmailPass },
+          connectionTimeout: 4000,
+          socketTimeout: 6000
+        }
+      },
+      {
+        name: "Direct SMTPS (Port 465, IPv4)",
+        config: {
+          host: 'smtp.gmail.com',
+          port: 465,
+          secure: true,
+          family: 4, // Force IPv4 to bypass any IPv6 connection stalls
+          auth: { user: gmailUser, pass: gmailPass },
+          connectionTimeout: 4000,
+          socketTimeout: 5000,
+          tls: { rejectUnauthorized: false }
+        }
+      },
+      {
+        name: "Direct STARTTLS (Port 587, IPv4)",
+        config: {
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          family: 4, // Force IPv4
+          auth: { user: gmailUser, pass: gmailPass },
+          connectionTimeout: 4000,
+          socketTimeout: 5000,
+          tls: { rejectUnauthorized: false }
+        }
+      }
     ];
 
     let emailSent = false;
     let fallbackUsed = false;
     let lastError: any = null;
 
-    // Phase 1: Try with attachment (using strict 3.5s timeout per attempt to avoid 504 serverless timeouts)
-    for (const config of smtpConfigs) {
+    // Phase 1: Try with attachment on each transporter config
+    for (const tConfig of transporters) {
       if (emailSent) break;
-      console.log(`[SMTP] Attempting connection on port ${config.port} with attachment...`);
+      console.log(`[SMTP] Attempting connection via ${tConfig.name} with attachment...`);
       try {
-        const transporter = nodemailer.createTransport({
-          host: config.host,
-          port: config.port,
-          secure: config.secure,
-          auth: { user: gmailUser, pass: gmailPass },
-          connectionTimeout: 3500,
-          greetingTimeout: 3500,
-          socketTimeout: 5000,
-          tls: { rejectUnauthorized: false }
-        });
-
+        const transporter = nodemailer.createTransport(tConfig.config as any);
         const activeMailOptions = { ...mailOptions };
         if (shareCardImage) {
           const base64Data = shareCardImage.replace(/^data:image\/(png|jpeg|jpg);base64,/, "");
@@ -223,33 +273,24 @@ router.post(['/send-reading', '/api/send-reading'], async (req, res) => {
         }
 
         await transporter.sendMail(activeMailOptions);
-        console.log(`[SMTP] Success on port ${config.port} with attachment.`);
+        console.log(`[SMTP] Success via ${tConfig.name} with attachment.`);
         emailSent = true;
       } catch (err: any) {
-        console.warn(`[SMTP] Failed on port ${config.port} with attachment:`, err.message || err);
+        console.warn(`[SMTP] Failed via ${tConfig.name} with attachment:`, err.message || err);
         lastError = err;
       }
     }
 
-    // Phase 2: If failed with attachment, try sending WITHOUT attachment (drastically reduces payload size)
+    // Phase 2: If failed with attachment, try sending WITHOUT attachment to minimize payload size and bypass network limits
     if (!emailSent && shareCardImage) {
-      console.log(`[SMTP] Retrying all ports WITHOUT attachment as fallback to secure delivery...`);
-      for (const config of smtpConfigs) {
+      console.log(`[SMTP] Retrying SMTP transport configurations WITHOUT attachment...`);
+      for (const tConfig of transporters) {
         if (emailSent) break;
+        console.log(`[SMTP Fallback] Attempting connection via ${tConfig.name} without attachment...`);
         try {
-          const transporter = nodemailer.createTransport({
-            host: config.host,
-            port: config.port,
-            secure: config.secure,
-            auth: { user: gmailUser, pass: gmailPass },
-            connectionTimeout: 3500,
-            greetingTimeout: 3500,
-            socketTimeout: 5000,
-            tls: { rejectUnauthorized: false }
-          });
-
+          const transporter = nodemailer.createTransport(tConfig.config as any);
           const activeMailOptions = { ...mailOptions };
-          activeMailOptions.attachments = []; // Empty attachments
+          activeMailOptions.attachments = [];
           activeMailOptions.text += "\n\n(Note: The card image attachment was omitted to secure delivery over slow connections.)";
           if (activeMailOptions.html) {
             activeMailOptions.html = activeMailOptions.html.replace(
@@ -259,18 +300,18 @@ router.post(['/send-reading', '/api/send-reading'], async (req, res) => {
           }
 
           await transporter.sendMail(activeMailOptions);
-          console.log(`[SMTP] Success on port ${config.port} in fallback (no attachment).`);
+          console.log(`[SMTP] Success via ${tConfig.name} without attachment input.`);
           emailSent = true;
           fallbackUsed = true;
         } catch (err: any) {
-          console.warn(`[SMTP] Fallback failed on port ${config.port} (no attachment):`, err.message || err);
+          console.warn(`[SMTP Fallback] Failed via ${tConfig.name} without attachment:`, err.message || err);
           lastError = err;
         }
       }
     }
 
     if (!emailSent) {
-      throw lastError || new Error("All SMTP channels failed.");
+      throw lastError || new Error("All SMTP channels and fallback attempts failed.");
     }
 
     res.json({ success: true, fallback: fallbackUsed });
