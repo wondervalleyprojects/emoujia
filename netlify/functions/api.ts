@@ -39,7 +39,7 @@ router.post(['/analyze', '/api/analyze'], async (req, res) => {
   if (!apiKey) return res.status(500).json({ error: 'Oracle connection failed: missing server key.' });
 
   try {
-    const model = "gemini-1.5-flash";
+    const model = "gemini-3.5-flash";
     const prompt = `You are EMOUJIA — an oracle that reads emoji the way a palmist reads a hand. 
   
 The user has provided a screenshot of their emoji keyboard's "Frequently Used" section.

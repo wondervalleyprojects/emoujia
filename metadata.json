@@ -2,5 +2,7 @@
   "name": "EMOUJIA",
   "description": "An oracle for your frequently used emoji keyboard screenshot.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }
