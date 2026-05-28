@@ -155,10 +155,18 @@ Return ONLY valid JSON. No markdown. No commentary.`;
       }
 
       const transporter = nodemailer.createTransport({
-        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
         auth: {
           user: gmailUser,
           pass: gmailPass
+        },
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
+        tls: {
+          rejectUnauthorized: false
         }
       });
 
@@ -176,7 +184,7 @@ Return ONLY valid JSON. No markdown. No commentary.`;
       const appUrl = process.env.VITE_APP_URL || 'https://emoujia.app';
 
       const mailOptions: any = {
-        from: { name: "Emoujia Oracle", address: senderEmail },
+        from: `"Emoujia Oracle" <${senderEmail}>`,
         replyTo: senderEmail,
         to: email,
         subject: "Your Emoujia Reading",

@@ -65,8 +65,19 @@ export default function App() {
     });
 
     if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.error || 'Failed to send email');
+      let errorMessage = 'Failed to send email';
+      try {
+        const data = await response.json();
+        errorMessage = data.error || errorMessage;
+      } catch (jsonErr) {
+        try {
+          const rawText = await response.text();
+          errorMessage = rawText.substring(0, 150) || `Status ${response.status}: ${response.statusText}`;
+        } catch {
+          errorMessage = `HTTP Status ${response.status} (${response.statusText || 'Unknown Error'})`;
+        }
+      }
+      throw new Error(errorMessage);
     }
   };
 
