@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { Upload as UploadIcon, Image as ImageIcon } from 'lucide-react';
 import { motion } from 'motion/react';
+import { Footer } from './Footer';
 
 interface UploadProps {
   onUpload: (base64: string) => void;
@@ -106,11 +107,7 @@ export default function Upload({ onUpload, isLoading }: UploadProps) {
         </div>
       </motion.div>
       
-      <div className="mt-12 text-[10px] font-mono uppercase tracking-[0.3em] opacity-30">
-        <a href="https://www.wondervalleyprojects.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-100 transition-opacity">
-          a lab project
-        </a>
-      </div>
+      <Footer />
     </div>
   );
 }

@@ -10,13 +10,13 @@ import { getFirestore as getClientFirestore, collection, addDoc, doc, setDoc, se
 dotenv.config();
 
 const firebaseConfig = {
-  projectId: process.env.FIREBASE_PROJECT_ID || 'gen-lang-client-0365094838',
-  appId: process.env.FIREBASE_APP_ID || '1:907908129152:web:26241f84d0c573d81ce165',
-  apiKey: process.env.FIREBASE_API_KEY || 'AIzaSyBe_EAD8EQiQX8R28CUGPC-d1ZcoshRd4Q',
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN || 'gen-lang-client-0365094838.firebaseapp.com',
-  firestoreDatabaseId: process.env.FIREBASE_DATABASE_ID || 'ai-studio-ba8645f8-a857-4aaf-afb0-8024a7560e64',
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'gen-lang-client-0365094838.firebasestorage.app',
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || '907908129152',
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  appId: process.env.FIREBASE_APP_ID,
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  firestoreDatabaseId: process.env.FIREBASE_DATABASE_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
 };
 
 const clientApp = initializeClientApp(firebaseConfig);
@@ -27,10 +27,11 @@ app.use(express.json({ limit: '10mb' }));
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
-// API Routes
+// API Routes with Multi-Path Router for Netlify Serverless Compatibility
+const router = express.Router();
 
 // Gemini Analysis Route
-app.post('/api/analyze', async (req, res) => {
+router.post(['/analyze', '/api/analyze'], async (req, res) => {
   const { image } = req.body;
   if (!image) return res.status(400).json({ error: 'Image data is required' });
 
@@ -105,7 +106,7 @@ Return ONLY valid JSON. No markdown. No commentary.`;
 });
 
 // Send Reading Email
-app.post('/api/send-reading', async (req, res) => {
+router.post(['/send-reading', '/api/send-reading'], async (req, res) => {
   const { email, readingText, essence, shareCardImage, optIn } = req.body;
 
   if (!email || !readingText) {
@@ -171,11 +172,20 @@ app.post('/api/send-reading', async (req, res) => {
              <h2 style="font-size: 26px; font-style: italic; margin: 0; font-weight: normal; color: #1a1a1a; line-height: 1.3;">"${essence}"</h2>
           </div>
           <div style="margin-top: 60px; text-align: center; border-top: 1px solid #eee; padding-top: 30px;">
-            <p style="font-size: 11px; font-family: sans-serif; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 12px;">
+            <p style="font-size: 11px; font-family: sans-serif; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 20px;">
               <a href="${appUrl}" style="color: #666; text-decoration: none; font-weight: bold;">VISIT THE PORTAL</a>
             </p>
-            <p style="font-size: 11px; font-family: sans-serif; text-transform: uppercase; letter-spacing: 0.2em;">
-              <a href="https://www.wondervalleyprojects.com" style="color: #666; text-decoration: underline;">A WONDER VALLEY PROJECTS LAB</a>
+            <div style="margin-bottom: 12px;">
+              <a href="https://www.wondervalleyprojects.com" style="text-decoration: none; display: inline-block;">
+                <div style="width: 28px; height: 28px; border-radius: 50%; background-color: #112E7B; text-align: center; font-family: sans-serif; font-size: 5px; font-weight: bold; display: inline-flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 2px;">
+                  <span style="color: #FF3E6C; display: block; margin-bottom: 0px; line-height: 1;">WONDER</span>
+                  <span style="color: #E9737E; display: block; margin-bottom: 0px; line-height: 1;">VALLEY</span>
+                  <span style="color: #F9B277; display: block; line-height: 1;">PROJECTS</span>
+                </div>
+              </a>
+            </div>
+            <p style="font-size: 11px; font-family: sans-serif; text-transform: uppercase; letter-spacing: 0.2em; margin: 0;">
+              <a href="https://www.wondervalleyprojects.com" style="color: #666; text-decoration: underline;">a companion lab project</a>
             </p>
           </div>
         </div>
@@ -196,7 +206,7 @@ app.post('/api/send-reading', async (req, res) => {
 });
 
 // Admin: Export Subscribers CSV
-app.get('/api/admin/export-subscribers', async (req, res) => {
+router.get(['/admin/export-subscribers', '/api/admin/export-subscribers'], async (req, res) => {
   try {
     const q = query(collection(db, 'subscribers'), orderBy('subscribedAt', 'desc'));
     const snapshot = await getDocs(q);
@@ -218,5 +228,10 @@ app.get('/api/admin/export-subscribers', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// Mount the router with prefixes to guarantee safe Netlify route matching
+app.use('/api', router);
+app.use('/.netlify/functions/api', router);
+app.use('/', router);
 
 export const handler = serverless(app);

@@ -4,20 +4,20 @@ import nodemailer from 'nodemailer';
 import { stringify } from 'csv-stringify/sync';
 
 const firebaseConfig = {
-  projectId: process.env.FIREBASE_PROJECT_ID || 'gen-lang-client-0365094838',
-  appId: process.env.FIREBASE_APP_ID || '1:907908129152:web:26241f84d0c573d81ce165',
-  apiKey: process.env.FIREBASE_API_KEY || 'AIzaSyBe_EAD8EQiQX8R28CUGPC-d1ZcoshRd4Q',
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN || 'gen-lang-client-0365094838.firebaseapp.com',
-  firestoreDatabaseId: process.env.FIREBASE_DATABASE_ID || 'ai-studio-ba8645f8-a857-4aaf-afb0-8024a7560e64',
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'gen-lang-client-0365094838.firebasestorage.app',
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || '907908129152',
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  appId: process.env.FIREBASE_APP_ID,
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  firestoreDatabaseId: process.env.FIREBASE_DATABASE_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 
 async function exportAndEmail() {
-  const adminEmail = process.env.GMAIL_USER || 'japhy@wondervalleyprojects.com';
+  const adminEmail = process.env.GMAIL_USER;
 const gmailUser = process.env.GMAIL_USER;
 const gmailPass = process.env.GMAIL_APP_PASSWORD;
 

@@ -1,4 +1,5 @@
 import { motion } from 'motion/react';
+import { Footer } from './Footer';
 
 interface ReadingProps {
   reading: string;
@@ -52,13 +53,7 @@ export default function Reading({ reading }: ReadingProps) {
         </div>
       </motion.div>
       
-      <div className="mt-12 text-center">
-        <p className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-30">
-          <a href="https://www.wondervalleyprojects.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-100 transition-opacity underline underline-offset-4">
-            A Wonder Valley Projects Lab
-          </a>
-        </p>
-      </div>
+      <Footer />
     </div>
   );
 }

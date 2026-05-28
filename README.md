@@ -36,11 +36,23 @@ EMOUJIA uses **Google Gemini 1.5 Flash** (vision) to analyze a screenshot of a u
 This project is configured for one-click deployment to Netlify.
 
 1.  Connect your GitHub repository to Netlify.
-2.  Set the following **Environment Variables** in the Netlify UI:
+2.  Set the following **Environment Variables** in the Netlify UI (Site settings > Build & deploy > Environment):
     -   `GEMINI_API_KEY`: Your Google AI Studio key.
     -   `GMAIL_USER`: Your Gmail address.
     -   `GMAIL_APP_PASSWORD`: Your 16-character App Password.
     -   `VITE_APP_URL`: Your final Netlify URL (e.g., `https://emoujia.netlify.app`).
+    -   `FIREBASE_PROJECT_ID`: From your Firebase project settings.
+    -   `FIREBASE_APP_ID`: From your Firebase project settings.
+    -   `FIREBASE_API_KEY`: From your Firebase project settings.
+    -   `FIREBASE_AUTH_DOMAIN`: From your Firebase project settings.
+    -   `FIREBASE_DATABASE_ID`: From your Firebase project settings.
+    -   `FIREBASE_STORAGE_BUCKET`: From your Firebase project settings.
+    -   `FIREBASE_MESSAGING_SENDER_ID`: From your Firebase project settings.
+
+### Handling Netlify Secrets Scanner
+Netlify's automated scanner may flag Firebase public keys as secrets. If your build is blocked despite removing hardcoded secrets, add this environment variable to Netlify:
+- `SECRETS_SCAN_OMIT_KEYS`: `FIREBASE_,VITE_`
+
 3.  The `netlify.toml` file automatically configures the build and API routes.
 
 ### Handling Scheduled Exports
