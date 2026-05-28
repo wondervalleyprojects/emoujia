@@ -137,23 +137,6 @@ router.post(['/send-reading', '/api/send-reading'], async (req, res) => {
       return res.json({ success: true, warning: 'Email configuration missing on server.' });
     }
 
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: gmailUser,
-        pass: gmailPass
-      },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000,
-      tls: {
-        rejectUnauthorized: false
-      }
-    });
-
-    const senderEmail = gmailUser;
     const emailBodyText = readingText
       .split(/THE ESSENCE/i)[0]
       .replace(/^[ \t]+/gm, '')
@@ -165,8 +148,8 @@ router.post(['/send-reading', '/api/send-reading'], async (req, res) => {
     const appUrl = process.env.VITE_APP_URL || 'https://emoujia.app';
 
     const mailOptions: any = {
-      from: `"Emoujia Oracle" <${senderEmail}>`,
-      replyTo: senderEmail,
+      from: `"Emoujia Oracle" <${gmailUser}>`,
+      replyTo: gmailUser,
       to: email,
       subject: "Your Emoujia Reading",
       text: `The Oracle has spoken.\n\n${emailBodyText}\n\n"${essence}"\n\nVisit your oracle again: ${appUrl}`,
@@ -203,16 +186,97 @@ router.post(['/send-reading', '/api/send-reading'], async (req, res) => {
       `
     };
 
-    if (shareCardImage) {
-      const base64Data = shareCardImage.replace(/^data:image\/png;base64,/, "");
-      mailOptions.attachments = [{ filename: 'emoujia-share-card.png', content: base64Data, encoding: 'base64' }];
+    // SMTP delivery config chain (Direct TLS port 465, then STARTTLS port 587)
+    const smtpConfigs = [
+      { host: 'smtp.gmail.com', port: 465, secure: true },
+      { host: 'smtp.gmail.com', port: 587, secure: false }
+    ];
+
+    let emailSent = false;
+    let fallbackUsed = false;
+    let lastError: any = null;
+
+    // Phase 1: Try with attachment (using strict 3.5s timeout per attempt to avoid 504 serverless timeouts)
+    for (const config of smtpConfigs) {
+      if (emailSent) break;
+      console.log(`[SMTP] Attempting connection on port ${config.port} with attachment...`);
+      try {
+        const transporter = nodemailer.createTransport({
+          host: config.host,
+          port: config.port,
+          secure: config.secure,
+          auth: { user: gmailUser, pass: gmailPass },
+          connectionTimeout: 3500,
+          greetingTimeout: 3500,
+          socketTimeout: 5000,
+          tls: { rejectUnauthorized: false }
+        });
+
+        const activeMailOptions = { ...mailOptions };
+        if (shareCardImage) {
+          const base64Data = shareCardImage.replace(/^data:image\/(png|jpeg|jpg);base64,/, "");
+          activeMailOptions.attachments = [{
+            filename: 'emoujia-share-card.jpg',
+            content: base64Data,
+            encoding: 'base64'
+          }];
+        }
+
+        await transporter.sendMail(activeMailOptions);
+        console.log(`[SMTP] Success on port ${config.port} with attachment.`);
+        emailSent = true;
+      } catch (err: any) {
+        console.warn(`[SMTP] Failed on port ${config.port} with attachment:`, err.message || err);
+        lastError = err;
+      }
     }
 
-    await transporter.sendMail(mailOptions);
-    res.json({ success: true });
+    // Phase 2: If failed with attachment, try sending WITHOUT attachment (drastically reduces payload size)
+    if (!emailSent && shareCardImage) {
+      console.log(`[SMTP] Retrying all ports WITHOUT attachment as fallback to secure delivery...`);
+      for (const config of smtpConfigs) {
+        if (emailSent) break;
+        try {
+          const transporter = nodemailer.createTransport({
+            host: config.host,
+            port: config.port,
+            secure: config.secure,
+            auth: { user: gmailUser, pass: gmailPass },
+            connectionTimeout: 3500,
+            greetingTimeout: 3500,
+            socketTimeout: 5000,
+            tls: { rejectUnauthorized: false }
+          });
+
+          const activeMailOptions = { ...mailOptions };
+          activeMailOptions.attachments = []; // Empty attachments
+          activeMailOptions.text += "\n\n(Note: The card image attachment was omitted to secure delivery over slow connections.)";
+          if (activeMailOptions.html) {
+            activeMailOptions.html = activeMailOptions.html.replace(
+              `<p style="text-align: center; font-style: italic; opacity: 0.6; font-size: 14px;">The Oracle has spoken.</p>`,
+              `<p style="text-align: center; font-style: italic; opacity: 0.6; font-size: 14px;">The Oracle has spoken.</p><p style="text-align: center; font-size: 11px; color: #888; font-style: italic; margin-top: 4px;">(Transmitted in text-only mode for fast delivery)</p>`
+            );
+          }
+
+          await transporter.sendMail(activeMailOptions);
+          console.log(`[SMTP] Success on port ${config.port} in fallback (no attachment).`);
+          emailSent = true;
+          fallbackUsed = true;
+        } catch (err: any) {
+          console.warn(`[SMTP] Fallback failed on port ${config.port} (no attachment):`, err.message || err);
+          lastError = err;
+        }
+      }
+    }
+
+    if (!emailSent) {
+      throw lastError || new Error("All SMTP channels failed.");
+    }
+
+    res.json({ success: true, fallback: fallbackUsed });
   } catch (error: any) {
     console.error("Error in /api/send-reading:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message || String(error) });
   }
 });
 

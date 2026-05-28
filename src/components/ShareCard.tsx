@@ -32,7 +32,7 @@ const ShareCard = forwardRef<ShareCardHandle, ShareCardProps>(({ rulingEmoji, gr
         logging: false,
         useCORS: true
       });
-      return canvas.toDataURL('image/png');
+      return canvas.toDataURL('image/jpeg', 0.72);
     } catch (err) {
       console.error("Failed to capture image", err);
       return null;
@@ -43,7 +43,7 @@ const ShareCard = forwardRef<ShareCardHandle, ShareCardProps>(({ rulingEmoji, gr
     const dataUrl = await captureImage();
     if (dataUrl) {
       const link = document.createElement('a');
-      link.download = 'emoujia-reading.png';
+      link.download = 'emoujia-reading.jpg';
       link.href = dataUrl;
       link.click();
     }
