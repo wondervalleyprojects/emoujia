@@ -201,20 +201,11 @@ router.post(['/send-reading', '/api/send-reading'], async (req, res) => {
              <h2 style="font-size: 26px; font-style: italic; margin: 0; font-weight: normal; color: #1a1a1a; line-height: 1.3;">"${essence}"</h2>
           </div>
           <div style="margin-top: 60px; text-align: center; border-top: 1px solid #eee; padding-top: 30px;">
-            <p style="font-size: 11px; font-family: sans-serif; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 20px;">
-              <a href="${appUrl}" style="color: #666; text-decoration: none; font-weight: bold;">VISIT THE PORTAL</a>
+            <p style="font-size: 11px; font-family: sans-serif; margin-bottom: 8px;">
+              <a href="${appUrl}" style="color: #1a1a1a; text-decoration: none; font-weight: bold; letter-spacing: 0.05em;">Visit the portal</a>
             </p>
-            <div style="margin-bottom: 12px;">
-              <a href="https://www.wondervalleyprojects.com" style="text-decoration: none; display: inline-block;">
-                <div style="width: 28px; height: 28px; border-radius: 50%; background-color: #112E7B; text-align: center; font-family: sans-serif; font-size: 5px; font-weight: bold; display: inline-flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 2px;">
-                  <span style="color: #FF3E6C; display: block; margin-bottom: 0px; line-height: 1;">WONDER</span>
-                  <span style="color: #E9737E; display: block; margin-bottom: 0px; line-height: 1;">VALLEY</span>
-                  <span style="color: #F9B277; display: block; line-height: 1;">PROJECTS</span>
-                </div>
-              </a>
-            </div>
-            <p style="font-size: 11px; font-family: sans-serif; text-transform: uppercase; letter-spacing: 0.2em; margin: 0;">
-              <a href="https://www.wondervalleyprojects.com" style="color: #666; text-decoration: underline;">a companion lab project</a>
+            <p style="font-size: 11px; font-family: sans-serif; margin: 0;">
+              <a href="https://www.wondervalleyprojects.com" style="color: #888; text-decoration: none; letter-spacing: 0.05em;">a companion lab project</a>
             </p>
           </div>
         </div>
