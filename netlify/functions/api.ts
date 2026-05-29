@@ -79,11 +79,19 @@ Example Output:
 
 Return ONLY valid JSON. No markdown. No commentary.`;
 
-    const mimeType = image.split(";")[0].split(":")[1] || "image/png";
-    const data = image.split(",")[1] || image;
+    const mimeType = image.includes(";") ? (image.split(";")[0].split(":")[1] || "image/png") : "image/png";
+    const rawData = image.includes(",") ? image.split(",")[1] : image;
+    
+    // Clean base64 string of any standard trailing padding errors, newlines, or URL-safe encoding differences
+    let cleanData = rawData.trim().replace(/[\r\n]/g, '').replace(/ /g, '+');
+    // Align/pad to multiple of 4
+    const pad = cleanData.length % 4;
+    if (pad > 0) {
+      cleanData += '='.repeat(4 - pad);
+    }
 
     const imagePart = {
-      inlineData: { mimeType, data },
+      inlineData: { mimeType, data: cleanData },
     };
 
     const result = await ai.models.generateContent({
@@ -264,7 +272,8 @@ router.post(['/send-reading', '/api/send-reading'], async (req, res) => {
         const transporter = nodemailer.createTransport(tConfig.config as any);
         const activeMailOptions = { ...mailOptions };
         if (shareCardImage) {
-          const base64Data = shareCardImage.replace(/^data:image\/(png|jpeg|jpg);base64,/, "");
+          // Clean base64 string of any spaces or formatting issues
+          const base64Data = shareCardImage.replace(/^data:image\/(png|jpeg|jpg);base64,/, "").trim().replace(/[\r\n]/g, '').replace(/ /g, '+');
           activeMailOptions.attachments = [{
             filename: 'emoujia-share-card.jpg',
             content: base64Data,
