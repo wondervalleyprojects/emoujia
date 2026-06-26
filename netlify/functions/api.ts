@@ -39,7 +39,6 @@ router.post(['/analyze', '/api/analyze'], async (req, res) => {
   if (!apiKey) return res.status(500).json({ error: 'Oracle connection failed: missing server key.' });
 
   try {
-    const model = "gemini-3.5-flash";
     const prompt = `You are EMOUJIA — an oracle that reads emoji the way a palmist reads a hand. 
   
 The user has provided a screenshot of their emoji keyboard's "Frequently Used" section.
@@ -94,10 +93,29 @@ Return ONLY valid JSON. No markdown. No commentary.`;
       inlineData: { mimeType, data: cleanData },
     };
 
-    const result = await ai.models.generateContent({
-      model,
-      contents: [{ role: 'user', parts: [{ text: prompt }, imagePart] }]
-    });
+    const modelsToTry = ["gemini-2.5-flash", "gemini-3.5-flash"];
+    let lastError: any = null;
+    let result: any = null;
+
+    for (const selectedModel of modelsToTry) {
+      try {
+        console.log(`Attempting Netlify analysis with model: ${selectedModel}`);
+        result = await ai.models.generateContent({
+          model: selectedModel,
+          contents: [{ role: 'user', parts: [{ text: prompt }, imagePart] }]
+        });
+        console.log(`Successfully generated content using model: ${selectedModel}`);
+        break;
+      } catch (error: any) {
+        console.error(`Error with model ${selectedModel}:`, error);
+        lastError = error;
+      }
+    }
+
+    if (!result) {
+      throw lastError || new Error("All oracle connection attempts failed due to model load.");
+    }
+
     const text = result.text || "{}";
     const cleaned = text.replace(/```json\n?|\n?```/g, "").replace(/```\n?|\n?```/g, "").trim();
     const parsed = JSON.parse(cleaned);
