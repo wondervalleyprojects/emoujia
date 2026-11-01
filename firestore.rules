@@ -12,7 +12,7 @@ service cloud.firestore {
 
     // Subscribers: only people who checked "Subscribe for more information."
     // Interim rule while the server still writes with the client SDK. Once
-    // FIREBASE_SERVICE_ACCOUNT is set, delete this block: the admin SDK
+    // the service account env vars are set, delete this block: the admin SDK
     // bypasses rules and nothing public needs access.
     match /subscribers/{email} {
       allow get, list: if false;

@@ -50,7 +50,7 @@ This project is configured for one-click deployment to Netlify.
     -   `FIREBASE_DATABASE_ID`: From your Firebase project settings.
     -   `FIREBASE_STORAGE_BUCKET`: From your Firebase project settings.
     -   `FIREBASE_MESSAGING_SENDER_ID`: From your Firebase project settings.
-    -   `FIREBASE_SERVICE_ACCOUNT`: A Firebase service account key (JSON, raw or base64). Required for the subscriber export.
+    -   `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY`: the `client_email` and `private_key` fields from a Firebase service account key. Required for the subscriber export. (`FIREBASE_SERVICE_ACCOUNT`, the whole key file, also works locally but is too big for Netlify's 4KB function environment.)
     -   `EXPORT_SECRET`: A long random string. Opens `/api/admin/export-subscribers` to requests that send `Authorization: Bearer <EXPORT_SECRET>`. Unset, the endpoint answers 404.
     -   `EXPORT_TO`: Optional. Where the scheduled CSV goes; defaults to `GMAIL_USER`.
 
@@ -70,7 +70,7 @@ curl -H "Authorization: Bearer $EXPORT_SECRET" https://emoujia.com/api/admin/exp
 or run `npx tsx scripts/export_subscribers.ts` with the env vars set.
 
 ### Firestore rules
-`firestore.rules` denies everything except creating a well-formed subscriber record. Readings are never written. Once `FIREBASE_SERVICE_ACCOUNT` is set, the subscriber block can be removed too.
+`firestore.rules` denies everything except creating a well-formed subscriber record. Readings are never written. Once the service account is set, the subscriber block can be removed too.
 
 ## Tech Stack
 -   **Frontend**: React 19, Vite, Tailwind CSS, Motion.

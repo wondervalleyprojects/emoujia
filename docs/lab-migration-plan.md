@@ -11,11 +11,11 @@ Working plan for moving Emoujia into Public Wonder as a Lab. Status: DRAFT until
 - The bug is the master file (LOGO-001), never redrawn.
 - The page reads without JavaScript; the reading itself needs it.
 - Gemini's free tier stays the engine. Traffic is far below the Shapiro webfont license (10,000 pageviews a month).
+- Share card (comp E, `docs/comps/share-card-E-final.png`): "Wonder Valley Projects Lab" and the labels in Shapiro Wide, the Essence in Shapiro Heavy, everything else in DM Mono.
 - The site's Lab face, night by default: Ink ground, white text, Signal for thin lines and accents. The emoji are the only color.
 
 ## Open
 
-- Share card typeface: A (Shapiro), B (DM Mono) or C (hybrid). Comps in `docs/comps/`.
 - Email signature for the reading email. Proposed: "Sent by a machine for the Wonder Valley Projects Lab. Reviewed by a person: no." Add "Replies reach a person." only if someone reads the inbox.
 - Register code for Emoujia. Proposed: EMJ.
 - Free tier honesty: the screenshot goes to Google's Gemini. On the free tier Google's terms let it use inputs to improve its products. Decide whether "kept by no one" needs a qualifier, or whether to move to the paid tier, which does not use inputs that way.
@@ -29,5 +29,5 @@ Working plan for moving Emoujia into Public Wonder as a Lab. Status: DRAFT until
 
 ## For Japhy to do in consoles
 
-- Firebase: delete the existing `readings` collection, publish the new `firestore.rules`, create a service account key and set `FIREBASE_SERVICE_ACCOUNT` in Netlify.
+- Firebase: delete the existing `readings` collection, publish the new `firestore.rules`, create a service account key and put its `client_email` and `private_key` into Netlify as `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY`.
 - Netlify: set `EXPORT_SECRET` (and `EXPORT_TO` if the CSV should go somewhere other than `GMAIL_USER`).

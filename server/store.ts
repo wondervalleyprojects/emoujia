@@ -10,15 +10,29 @@ import { getFirestore as getAdminFirestore, FieldValue } from 'firebase-admin/fi
 
 const databaseId = process.env.FIREBASE_DATABASE_ID || '(default)';
 
-// FIREBASE_SERVICE_ACCOUNT holds the service account JSON, raw or base64.
-// With it, the server reads and writes as an admin and the public Firestore
-// rules can deny everything. Without it, writes fall back to the client SDK
-// and the subscriber export cannot run.
-function adminDb() {
+// Admin credentials, either way:
+// - FIREBASE_CLIENT_EMAIL + FIREBASE_PRIVATE_KEY (with FIREBASE_PROJECT_ID).
+//   Smallest; use this on Netlify, where functions share a 4KB env limit.
+// - FIREBASE_SERVICE_ACCOUNT: the whole key file as JSON, raw or base64.
+// With either, the server reads and writes as an admin and the public
+// Firestore rules can deny everything. Without them, writes fall back to the
+// client SDK and the subscriber export cannot run.
+function adminCredential() {
+  const email = process.env.FIREBASE_CLIENT_EMAIL;
+  const key = process.env.FIREBASE_PRIVATE_KEY;
+  if (email && key) {
+    return cert({ projectId: process.env.FIREBASE_PROJECT_ID, clientEmail: email, privateKey: key.replace(/\\n/g, '\n') });
+  }
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
   if (!raw) return null;
   const json = raw.trim().startsWith('{') ? raw : Buffer.from(raw, 'base64').toString('utf8');
-  const app = getApps()[0] || initializeAdminApp({ credential: cert(JSON.parse(json)) });
+  return cert(JSON.parse(json));
+}
+
+function adminDb() {
+  const credential = adminCredential();
+  if (!credential) return null;
+  const app = getApps()[0] || initializeAdminApp({ credential });
   return getAdminFirestore(app, databaseId);
 }
 
@@ -58,7 +72,7 @@ export async function saveSubscriber(email: string): Promise<void> {
 export async function subscribersCsv(): Promise<{ csv: string; count: number }> {
   const admin = adminDb();
   if (!admin) {
-    throw new Error('Subscriber export needs FIREBASE_SERVICE_ACCOUNT. The public Firestore rules do not allow listing subscribers.');
+    throw new Error('Subscriber export needs FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY (or FIREBASE_SERVICE_ACCOUNT). The public Firestore rules do not allow listing subscribers.');
   }
   const snapshot = await admin.collection('subscribers').orderBy('subscribedAt', 'desc').get();
   const rows = snapshot.docs.map((d) => {
