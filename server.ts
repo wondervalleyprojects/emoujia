@@ -3,29 +3,15 @@ import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
-import { stringify } from 'csv-stringify/sync';
 import { GoogleGenAI } from "@google/genai";
 import * as dotenv from 'dotenv';
-import { initializeApp as initializeClientApp } from 'firebase/app';
+import { saveSubscriber, subscribersCsv, exportAuthorized } from './server/store';
 
 dotenv.config();
-import { getFirestore as getClientFirestore, collection, addDoc, doc, setDoc, serverTimestamp, getDocs, query, orderBy } from 'firebase/firestore';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const firebaseConfig = {
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  appId: process.env.FIREBASE_APP_ID,
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  firestoreDatabaseId: process.env.FIREBASE_DATABASE_ID,
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-};
-
-const clientApp = initializeClientApp(firebaseConfig);
-const db = getClientFirestore(clientApp, firebaseConfig.firestoreDatabaseId);
 
 async function startServer() {
   const app = express();
@@ -161,38 +147,14 @@ Return ONLY valid JSON. No markdown. No commentary.`;
     };
 
     try {
-      try {
-        // 1. Store/Update Subscriber if opted in with 2 second timeout
-        if (optIn) {
-          console.log("[DB] Attempting to store subscriber...");
-          await withTimeout(
-            setDoc(doc(db, 'subscribers', email.toLowerCase()), {
-              email: email.toLowerCase(),
-              subscribedAt: serverTimestamp(),
-              source: 'reading_form'
-            }, { merge: true }),
-            2000,
-            "Firestore subscriber save"
-          );
-          console.log("[DB] Subscriber stored successfully.");
+      // Readings are never stored. The email address is kept only when the person
+      // checked "Subscribe for more information."
+      if (optIn) {
+        try {
+          await withTimeout(saveSubscriber(email), 2000, 'Subscriber save');
+        } catch (dbError: any) {
+          console.warn('[DB Warning] Subscriber save failed. Sending the email anyway.', dbError?.message || dbError);
         }
-
-        // 2. Store Reading with 2 second timeout
-        console.log("[DB] Attempting to store reading...");
-        await withTimeout(
-          addDoc(collection(db, 'readings'), {
-            email: email.toLowerCase(),
-            readingText,
-            essence,
-            createdAt: serverTimestamp(),
-            optIn: !!optIn
-          }),
-          2000,
-          "Firestore reading save"
-        );
-        console.log("[DB] Reading stored successfully.");
-      } catch (dbError: any) {
-        console.warn("[DB Warning] Failed or timed out writing to Firestore database. Proceeding to send email anyway. Error:", dbError.message || dbError);
       }
 
       // 3. Send Email
@@ -201,7 +163,7 @@ Return ONLY valid JSON. No markdown. No commentary.`;
 
       if (!gmailUser || !gmailPass) {
         console.warn("Gmail credentials not set, skipping email send.");
-        return res.json({ success: true, warning: 'Email configuration missing on server, but data was saved.' });
+        return res.json({ success: true, warning: 'Email configuration missing on server.' });
       }
 
       // Clean up reading text for email (remove essence and fix indentation)
@@ -216,11 +178,11 @@ Return ONLY valid JSON. No markdown. No commentary.`;
       const appUrl = process.env.VITE_APP_URL || 'https://emoujia.app';
 
       const mailOptions: any = {
-        from: `"Emoujia Oracle" <${gmailUser}>`,
+        from: `"Emoujia, a Wonder Valley Projects Lab" <${gmailUser}>`,
         replyTo: gmailUser,
         to: email,
         subject: "Your Emoujia Reading",
-        text: `The Oracle has spoken.\n\n${emailBodyText}\n\n"${essence}"\n\nVisit your oracle again: ${appUrl}`,
+        text: `The Oracle has spoken.\n\n${emailBodyText}\n\n"${essence}"\n\nVisit your oracle again: ${appUrl}\n\nYour reading was sent and not kept.\n\n--\nSent by a machine for the Wonder Valley Projects Lab. Reviewed by a person: no.`,
         html: `
           <div style="font-family: serif; max-width: 600px; margin: 0 auto; color: #1a1a1a; padding: 20px;">
             <h1 style="text-align: center; letter-spacing: 0.3em; font-weight: normal; margin-bottom: 10px;">EMOUJIA</h1>
@@ -241,8 +203,9 @@ Return ONLY valid JSON. No markdown. No commentary.`;
                 <a href="${appUrl}" style="color: #1a1a1a; text-decoration: none; font-weight: bold; letter-spacing: 0.05em;">Visit the portal</a>
               </p>
               <p style="font-size: 11px; font-family: sans-serif; margin: 0;">
-                <a href="https://www.wondervalleyprojects.com" style="color: #888; text-decoration: none; letter-spacing: 0.05em;">a companion lab project</a>
+                <a href="https://www.wondervalleyprojects.com" style="color: #888; text-decoration: none; letter-spacing: 0.05em;">A Wonder Valley Projects Lab</a>
               </p>
+            <p style="font-size: 11px; font-family: sans-serif; margin-top: 16px; color: #555;">Your reading was sent and not kept.<br/>Sent by a machine for the Wonder Valley Projects Lab. Reviewed by a person: no.</p>
             </div>
           </div>
         `
@@ -357,29 +320,21 @@ Return ONLY valid JSON. No markdown. No commentary.`;
     }
   });
 
-  // Admin: Export Subscribers CSV
-  // Note: This is an unauthenticated export for demonstration. 
-  // In real use, this should be password protected.
+  // Admin: subscriber CSV. Closed unless EXPORT_SECRET is set; then it needs
+  // "Authorization: Bearer <EXPORT_SECRET>". The scheduled email lives in
+  // netlify/functions/export-subscribers.mts.
   app.get('/api/admin/export-subscribers', async (req, res) => {
+    if (!exportAuthorized(req.get('authorization'))) {
+      return res.status(404).json({ error: 'Not found' });
+    }
     try {
-      const q = query(collection(db, 'subscribers'), orderBy('subscribedAt', 'desc'));
-      const snapshot = await getDocs(q);
-      const subscribers = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          email: data.email,
-          subscribedAt: data.subscribedAt?.toDate?.()?.toISOString?.() || '',
-          source: data.source || ''
-        };
-      });
-
-      const csv = stringify(subscribers, { header: true });
+      const { csv } = await subscribersCsv();
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', 'attachment; filename=emoujia_subscribers.csv');
       res.send(csv);
     } catch (error: any) {
       console.error("Error exporting subscribers:", error);
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: 'Export failed' });
     }
   });
 
@@ -404,52 +359,7 @@ Return ONLY valid JSON. No markdown. No commentary.`;
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
-    
-    // Scheduled Task: Check every 24 hours if it's time to export subscribers
-    // The user wants it "every other week". We'll check every day.
-    setInterval(async () => {
-      const now = new Date();
-      // Simple check: Send on the 1st and 15th of the month
-      if (now.getDate() === 1 || now.getDate() === 15) {
-        console.log("Triggering scheduled subscriber export...");
-        try {
-          // We can call a internal function or use the logic from export_subscribers.ts
-          // For simplicity within the same process:
-          const q = query(collection(db, 'subscribers'), orderBy('subscribedAt', 'desc'));
-          const snapshot = await getDocs(q);
-          const subscribers = snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-              email: data.email,
-              subscribedAt: data.subscribedAt?.toDate?.()?.toISOString?.() || '',
-              source: data.source || ''
-            };
-          });
 
-          if (subscribers.length > 0) {
-            const csv = stringify(subscribers, { header: true });
-            const gmailUser = process.env.GMAIL_USER;
-            const gmailPass = process.env.GMAIL_APP_PASSWORD;
-            
-            if (gmailUser && gmailPass) {
-              const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: gmailUser, pass: gmailPass } });
-              const senderEmail = gmailUser;
-              await transporter.sendMail({
-                from: { name: "Emoujia System", address: senderEmail },
-                replyTo: senderEmail,
-                to: process.env.GMAIL_USER,
-                subject: `Emoujia: Scheduled Subscriber Export (${now.toISOString().split('T')[0]})`,
-                text: "Attached is the latest subscriber list for your Substack import.",
-                attachments: [{ filename: `subscribers_${now.toISOString().split('T')[0]}.csv`, content: csv }]
-              });
-              console.log("Scheduled export sent to", gmailUser);
-            }
-          }
-        } catch (err) {
-          console.error("Scheduled export failed:", err);
-        }
-      }
-    }, 24 * 60 * 60 * 1000); // Once a day
   });
 }
 

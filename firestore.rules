@@ -1,35 +1,24 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Default deny
+    // Default deny. Readings are never stored.
     match /{document=**} {
       allow read, write: if false;
-    }
-
-    // Helper functions
-    function isSignedIn() {
-      return request.auth != null;
     }
 
     function isValidEmail(email) {
       return email is string && email.size() <= 256 && email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$');
     }
 
-    function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
-    // Subscribers collection
+    // Subscribers: only people who checked "Subscribe for more information."
+    // Interim rule while the server still writes with the client SDK. Once
+    // FIREBASE_SERVICE_ACCOUNT is set, delete this block: the admin SDK
+    // bypasses rules and nothing public needs access.
     match /subscribers/{email} {
-      allow get, list: if false; // Prevents public scraping
-      allow create, update: if true; // Allows submissions
-    }
-
-    // Readings collection
-    match /readings/{readingId} {
-      allow get, list: if false; // Prevents public scraping
-      allow create: if true; // Allows saving readings
-      allow update, delete: if false;
+      allow get, list: if false;
+      allow create, update: if isValidEmail(request.resource.data.email)
+        && request.resource.data.email == email
+        && request.resource.data.keys().hasOnly(['email', 'subscribedAt', 'source']);
     }
   }
 }

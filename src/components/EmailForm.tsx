@@ -8,7 +8,7 @@ interface EmailFormProps {
 
 export default function EmailForm({ onSend }: EmailFormProps) {
   const [email, setEmail] = useState('');
-  const [optIn, setOptIn] = useState(true);
+  const [optIn, setOptIn] = useState(false);
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
 
@@ -83,7 +83,8 @@ export default function EmailForm({ onSend }: EmailFormProps) {
                 <Check className="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" />
               </div>
               <span className="text-[11px] opacity-50 group-hover:opacity-80 transition-opacity leading-tight font-mono tracking-tighter">
-                I would like to receive more information and updates from the Lab.
+                Subscribe for more information.
+                <span className="block mt-1 opacity-70">We keep your email only if you check this. Your reading is sent, then not kept.</span>
               </span>
             </label>
 

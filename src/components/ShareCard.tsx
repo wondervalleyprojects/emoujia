@@ -126,10 +126,10 @@ const ShareCard = forwardRef<ShareCardHandle, ShareCardProps>(({ rulingEmoji, gr
             <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '20px', letterSpacing: '0.2em', opacity: 0.4 }}>
               {appUrl.replace('https://', '').replace('http://', '')}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', opacity: 0.4 }}>
-              <WonderValleyLogo size={36} />
-              <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '11px', letterSpacing: '0.3em', opacity: 0.6, textTransform: 'uppercase' }}>
-                a companion lab project
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+              <WonderValleyLogo size={48} />
+              <div style={{ fontFamily: '"Space Mono", monospace', fontSize: '13px', letterSpacing: '0.3em', opacity: 0.6, textTransform: 'uppercase' }}>
+                A Wonder Valley Projects Lab
               </div>
             </div>
           </div>
