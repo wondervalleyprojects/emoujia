@@ -9,7 +9,7 @@ Everything that lives outside the code: settings, keys, fonts, the export, and w
 - **Gmail** sends the reading emails from the account in `GMAIL_USER`. Replies go to emoujia@wondervalleyprojects.com.
 - **Google AI Studio** issues the Gemini key (free tier).
 
-Another Netlify account outside the studio's team also builds this repo (it shows up as `effulgent-kitten-f03c05` on pull requests). It does not serve emoujia.com. Find which account it is and disconnect it, or leave it; it changes nothing.
+Another Netlify project outside the studio's team also builds this repo (it shows up as `effulgent-kitten-f03c05` on pull requests). Most likely it was created when the app was first deployed from Google AI Studio. It does not serve emoujia.com and changes nothing; disconnect it from the GitHub repo settings (Integrations) if it is ever in the way.
 
 ## Environment variables (Netlify, project `emoujia`)
 
@@ -23,7 +23,7 @@ Another Netlify account outside the studio's team also builds this repo (it show
 | `EXPORT_SECRET` | Functions | Opens the manual export. Not set yet. |
 | `EXPORT_TO` | Functions | Optional. Where the CSV goes; defaults to `GMAIL_USER`. |
 | `REPLY_TO` | Functions | Optional. Defaults to emoujia@wondervalleyprojects.com. |
-| `FONTS_REPO`, `FONTS_TOKEN`, `FONTS_DIR` | Builds | The private font repo. Not set yet. See Fonts. |
+| `FONTS_TOKEN` | Builds | Read-only token for wvp-brand-fonts. Not set yet. See Fonts. |
 | `SECRETS_SCAN_OMIT_KEYS` | Builds | `FIREBASE_,VITE_` if Netlify's secret scanner flags the public Firebase config. |
 
 Netlify functions share a 4KB limit for all their variables together, which is why the service account goes in as two fields, not the whole key file.
@@ -32,18 +32,14 @@ Netlify functions share a 4KB limit for all their variables together, which is w
 
 Shapiro is licensed to Wonder Valley Projects LLC (MyFonts webfont license, 2018, up to 10,000 pageviews a month across the studio's sites). This repo is public, so the font files must never be committed; `public/fonts/shapiro/` is in `.gitignore`. Serving them from the live site is what the license allows. Publishing them in a public repo is not.
 
-At build time `scripts/fetch-fonts.mjs` copies them from a private GitHub repo. Until that is set up, Barlow stands in and the site works.
+At build time `scripts/fetch-fonts.mjs` copies three files from the studio's private repo [wondervalleyprojects/wvp-brand-fonts](https://github.com/wondervalleyprojects/wvp-brand-fonts): `webFonts/Shapiro75Heavy`, `webFonts/Shapiro75HeavyWide` and `webFonts/Shapiro45WelterText` (each `font.woff2`). Until the token is set, Barlow stands in and the site works.
 
-One-time setup (about ten minutes), reusable for every studio site:
+One-time setup (about five minutes). The same token can serve the main site and Watershed later:
 
-1. On GitHub, create a **private** repo, for example `wondervalleyprojects/wvp-brand-fonts`.
-2. Add a folder `shapiro/` with three files from the brand kit (Commons / Brand / 00. Public Wonder Brand Kit, the Shapiro folders), renamed:
-   - `Shapiro75Heavy/font.woff2` → `shapiro/Shapiro75Heavy.woff2`
-   - `Shapiro75HeavyWide/font.woff2` → `shapiro/Shapiro75HeavyWide.woff2`
-   - `Shapiro45Welter/font.woff2` → `shapiro/Shapiro45Welter.woff2`
-3. On GitHub, Settings, Developer settings, **Fine-grained tokens**, Generate new token: repository access "Only select repositories" with that repo; permission **Contents: Read-only**. Set an expiry and a calendar reminder to renew it.
-4. In Netlify (project `emoujia`), add `FONTS_REPO` = `wondervalleyprojects/wvp-brand-fonts` and `FONTS_TOKEN` = the token, scope **Builds**, marked secret.
-5. Trigger a deploy. The build log says `[fonts] Fetched 3 of 3 Shapiro files.`
+1. On GitHub: your avatar, Settings, Developer settings, Personal access tokens, **Fine-grained tokens**, Generate new token.
+2. Resource owner: wondervalleyprojects. Repository access: **Only select repositories**, `wvp-brand-fonts`. Permissions: **Contents, Read-only**. Nothing else. Set an expiry and a calendar reminder to renew it.
+3. In Netlify, project `emoujia`, Site configuration, Environment variables: add `FONTS_TOKEN` with the token, scope **Builds**, marked secret. (`FONTS_REPO` is optional; it defaults to the brand fonts repo.)
+4. Trigger a deploy. The build log says `[fonts] Fetched 3 of 3 Shapiro files from wondervalleyprojects/wvp-brand-fonts.`
 
 ## Subscriber export
 

@@ -3,7 +3,7 @@
 ## 0.2.0, 1 Nov 2026: the Lab look
 
 - Public Wonder, Lab face: Ink and white grounds, Auto, Day and Night light, tokens by their canonical names.
-- Type: Shapiro (fetched at build from a private repo, never committed), Barlow standing in until then, DM Mono for the machine's words and the Record line.
+- Type: Shapiro (fetched at build from the private wvp-brand-fonts repo, never committed), Barlow standing in until then, DM Mono for the machine's words and the Record line.
 - New first screen: "What do your emojis say about you?", the `[READ MY EMOJI]` invitation bracket, drop anywhere, how it works, what we keep.
 - The wait is a machine log that adds lines and never loops.
 - The reading: the trace band drawn from your grid, masthead strip, labels in the margin, the casing line naming the model, the Record line.

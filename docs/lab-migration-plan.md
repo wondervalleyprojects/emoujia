@@ -1,5 +1,7 @@
 # Emoujia in the Wonder Valley Projects Lab
 
+**Paused, 1 Nov 2026, by Japhy.** Phase 1 is live. Phases 2 and 3 are built and waiting in PR #2. Resume when the new wondervalleyprojects.com is ready, and restyle Emoujia to the final Public Wonder at the same time as the site, in one pass.
+
 Working plan for moving Emoujia into Public Wonder as a Lab. Status: DRAFT until Japhy signs it.
 
 ## Decisions so far (1 Nov 2026)
@@ -25,7 +27,7 @@ Working plan for moving Emoujia into Public Wonder as a Lab. Status: DRAFT until
 
 ## For Japhy to do in consoles
 
-- Fonts: a private repo with the three Shapiro files and a read-only token in Netlify (`FONTS_REPO`, `FONTS_TOKEN`). Steps in `docs/OPERATIONS.md`.
+- Fonts: a read-only token for the existing private repo wondervalleyprojects/wvp-brand-fonts, set in Netlify as `FONTS_TOKEN`. Steps in `docs/OPERATIONS.md`.
 
 - Firebase: delete the existing `readings` collection, publish the new `firestore.rules`, create a service account key and put its `client_email` and `private_key` into Netlify as `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY`.
 - Netlify: set `EXPORT_SECRET` (and `EXPORT_TO` if the CSV should go somewhere other than `GMAIL_USER`).

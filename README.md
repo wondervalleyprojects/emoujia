@@ -38,7 +38,7 @@ For Shapiro locally, put the three `.woff2` files in `public/fonts/shapiro/` (ne
 
 ## Deploy
 
-Netlify builds `main` for the `emoujia` project. `npm run build` fetches the fonts from the private font repo when `FONTS_REPO` and `FONTS_TOKEN` are set, then runs Vite. Every setting, key and console step is in [docs/OPERATIONS.md](docs/OPERATIONS.md).
+Netlify builds `main` for the `emoujia` project. `npm run build` fetches Shapiro from the private wvp-brand-fonts repo when `FONTS_TOKEN` is set, then runs Vite. Every setting, key and console step is in [docs/OPERATIONS.md](docs/OPERATIONS.md).
 
 ## Docs
 

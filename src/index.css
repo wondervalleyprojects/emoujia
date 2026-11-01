@@ -7,7 +7,7 @@
    are deployed to /fonts/shapiro/, Barlow stands in (as it does in Docs). */
 @font-face { font-family: "Shapiro Heavy"; font-weight: 700; font-display: swap; src: url(/fonts/shapiro/Shapiro75Heavy.woff2) format("woff2"); }
 @font-face { font-family: "Shapiro Wide"; font-weight: 700; font-display: swap; src: url(/fonts/shapiro/Shapiro75HeavyWide.woff2) format("woff2"); }
-@font-face { font-family: "Shapiro Text"; font-weight: 400; font-display: swap; src: url(/fonts/shapiro/Shapiro45Welter.woff2) format("woff2"); }
+@font-face { font-family: "Shapiro Text"; font-weight: 400; font-display: swap; src: url(/fonts/shapiro/Shapiro45WelterText.woff2) format("woff2"); }
 @font-face { font-family: "Barlow"; font-weight: 400; font-display: swap; src: url(/fonts/Barlow-400.woff2) format("woff2"); }
 @font-face { font-family: "Barlow"; font-weight: 600; font-display: swap; src: url(/fonts/Barlow-600.woff2) format("woff2"); }
 @font-face { font-family: "Barlow"; font-weight: 700; font-display: swap; src: url(/fonts/Barlow-700.woff2) format("woff2"); }
