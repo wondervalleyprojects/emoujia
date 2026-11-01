@@ -1,38 +1,20 @@
-export async function generateFullReading(base64Image: string): Promise<{ emojis: string[], reading: string }> {
-  try {
-    const response = await fetch('/api/analyze', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: base64Image }),
-    });
+export interface ReadingResult { emojis: string[]; reading: string; model?: string }
 
-    if (!response.ok) {
-      let errorMessage = `Oracle error: ${response.status}`;
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.error || errorMessage;
-      } catch (jsonErr) {
-        try {
-          const rawText = await response.text();
-          errorMessage = rawText.substring(0, 150) || errorMessage;
-        } catch {
-          errorMessage = `HTTP Status ${response.status} (${response.statusText || 'Unknown Error'})`;
-        }
-      }
-      throw new Error(errorMessage);
-    }
+export class RestingError extends Error {}
 
-    try {
-      const result = await response.json();
-      if (!result.emojis || !result.reading) {
-        throw new Error("The oracle returned an incomplete sequence.");
-      }
-      return result;
-    } catch (parseErr: any) {
-      throw new Error(`Failed to read the oracle's response: ${parseErr?.message || parseErr}`);
-    }
-  } catch (e) {
-    console.error("Combined reading failed", e);
-    throw e;
+export async function generateFullReading(image: string): Promise<ReadingResult> {
+  const response = await fetch('/api/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image }),
+  });
+  if (!response.ok) {
+    let message = `Status ${response.status}`;
+    try { message = (await response.json()).error || message; } catch { /* not JSON */ }
+    if (response.status === 429 || /quota|429|exhausted|rate/i.test(message)) throw new RestingError(message);
+    throw new Error(message);
   }
+  const result = await response.json();
+  if (!result.emojis || !result.reading) throw new Error('The oracle returned an incomplete reading.');
+  return result;
 }

@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
 import { GoogleGenAI } from "@google/genai";
 import * as dotenv from 'dotenv';
+import { buildReadingEmail } from './server/readingEmail';
 import { saveSubscriber, subscribersCsv, exportAuthorized } from './server/store';
 
 dotenv.config();
@@ -95,6 +96,7 @@ Return ONLY valid JSON. No markdown. No commentary.`;
       const modelsToTry = ["gemini-2.5-flash", "gemini-3.5-flash"];
       let lastError: any = null;
       let result: any = null;
+      let usedModel = '';
 
       for (const selectedModel of modelsToTry) {
         try {
@@ -103,7 +105,8 @@ Return ONLY valid JSON. No markdown. No commentary.`;
             model: selectedModel,
             contents: [{ role: 'user', parts: [{ text: prompt }, imagePart] }]
           });
-          console.log(`Successfully generated content using model: ${selectedModel}`);
+          usedModel = selectedModel;
+        console.log(`Successfully generated content using model: ${selectedModel}`);
           break;
         } catch (error: any) {
           console.error(`Error with model ${selectedModel}:`, error);
@@ -123,7 +126,7 @@ Return ONLY valid JSON. No markdown. No commentary.`;
         throw new Error("The oracle returned an incomplete sequence.");
       }
 
-      res.json(parsed);
+      res.json({ ...parsed, model: usedModel });
     } catch (error: any) {
       console.error("Gemini Error:", error);
       res.status(500).json({ error: error.message });
@@ -175,40 +178,13 @@ Return ONLY valid JSON. No markdown. No commentary.`;
         .join('\n')
         .trim();
 
-      const appUrl = process.env.VITE_APP_URL || 'https://emoujia.app';
+      const appUrl = process.env.VITE_APP_URL || 'https://emoujia.com';
 
       const mailOptions: any = {
         from: `"Emoujia, a Wonder Valley Projects Lab" <${gmailUser}>`,
         replyTo: process.env.REPLY_TO || 'emoujia@wondervalleyprojects.com',
         to: email,
-        subject: "Your Emoujia Reading",
-        text: `The Oracle has spoken.\n\n${emailBodyText}\n\n"${essence}"\n\nVisit your oracle again: ${appUrl}\n\nYour reading was sent and not kept.\n\n--\nSent by a machine for the Wonder Valley Projects Lab. Reviewed by a person: no. Replies reach a person.`,
-        html: `
-          <div style="font-family: serif; max-width: 600px; margin: 0 auto; color: #1a1a1a; padding: 20px;">
-            <h1 style="text-align: center; letter-spacing: 0.3em; font-weight: normal; margin-bottom: 10px;">EMOUJIA</h1>
-            <p style="text-align: center; font-style: italic; opacity: 0.6; font-size: 14px;">The Oracle has spoken.</p>
-            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
-            
-            <div style="font-size: 16px; line-height: 1.8; color: #333; text-align: left;">
-              ${emailBodyText.replace(/\n/g, '<br/>')}
-            </div>
-            
-            <div style="margin-top: 50px; text-align: center; background: #f4f4f4; padding: 40px 20px; border-radius: 12px; border: 1px solid #eee;">
-               <p style="font-size: 10px; font-family: sans-serif; text-transform: uppercase; tracking: 0.2em; margin-bottom: 15px; opacity: 0.5;">The Essence</p>
-               <h2 style="font-size: 26px; font-style: italic; margin: 0; font-weight: normal; color: #1a1a1a; line-height: 1.3;">"${essence}"</h2>
-            </div>
-            
-            <div style="margin-top: 60px; text-align: center; border-top: 1px solid #eee; padding-top: 30px;">
-              <p style="font-size: 11px; font-family: sans-serif; margin-bottom: 8px;">
-                <a href="${appUrl}" style="color: #1a1a1a; text-decoration: none; font-weight: bold; letter-spacing: 0.05em;">Visit the portal</a>
-              </p>
-              <p style="font-size: 11px; font-family: sans-serif; margin: 0;">
-                <a href="https://www.wondervalleyprojects.com" style="color: #888; text-decoration: none; letter-spacing: 0.05em;">A Wonder Valley Projects Lab</a>
-              </p>
-            <p style="font-size: 11px; font-family: sans-serif; margin-top: 16px; color: #555;">Your reading was sent and not kept.<br/>Sent by a machine for the Wonder Valley Projects Lab. Reviewed by a person: no. Replies reach a person.</p>
-            </div>
-          </div>
-        `
+        ...buildReadingEmail(emailBodyText, essence || '', appUrl),
       };
 
       // SMTP transporter fallback configurations

@@ -1,26 +1,145 @@
 @import "tailwindcss";
 
-@theme {
-  --font-sans: "Lora", ui-serif, Georgia, serif;
-  --font-mono: "Space Mono", ui-monospace, SFMono-Regular, monospace;
-  --font-serif: "Lora", ui-serif, Georgia, serif;
-  
-  --color-accent-purple: #7b2fc9;
-  --color-accent-blue: #2a6cb0;
-  --color-text-purple: #e8d5ff;
+/* Public Wonder, Lab face. Names follow public-wonder-tokens.css 2027.5;
+   swap this block for the canonical file when the shared site ships. */
+
+/* Shapiro is licensed and lives outside this public repo. Until the files
+   are deployed to /fonts/shapiro/, Barlow stands in (as it does in Docs). */
+@font-face { font-family: "Shapiro Heavy"; font-weight: 700; font-display: swap; src: url(/fonts/shapiro/Shapiro75Heavy.woff2) format("woff2"); }
+@font-face { font-family: "Shapiro Wide"; font-weight: 700; font-display: swap; src: url(/fonts/shapiro/Shapiro75HeavyWide.woff2) format("woff2"); }
+@font-face { font-family: "Shapiro Text"; font-weight: 400; font-display: swap; src: url(/fonts/shapiro/Shapiro45WelterText.woff2) format("woff2"); }
+@font-face { font-family: "Barlow"; font-weight: 400; font-display: swap; src: url(/fonts/Barlow-400.woff2) format("woff2"); }
+@font-face { font-family: "Barlow"; font-weight: 600; font-display: swap; src: url(/fonts/Barlow-600.woff2) format("woff2"); }
+@font-face { font-family: "Barlow"; font-weight: 700; font-display: swap; src: url(/fonts/Barlow-700.woff2) format("woff2"); }
+@font-face { font-family: "DM Mono"; font-weight: 400; font-display: swap; src: url(/fonts/DMMono-400.woff2) format("woff2"); }
+@font-face { font-family: "DM Mono"; font-weight: 500; font-display: swap; src: url(/fonts/DMMono-500.woff2) format("woff2"); }
+
+:root {
+  --pw-color-studio-blue: #133284;
+  --pw-color-signal: #FA3A6B;
+  --pw-color-signal-deep: #D11E50;
+  --pw-color-ink: #0A0E2A;
+  --pw-color-tint: #EDF0FA;
+  --pw-color-white: #FFFFFF;
+
+  --pw-font-heavy: "Shapiro Heavy", "Barlow", system-ui, sans-serif;
+  --pw-font-wide: "Shapiro Wide", "Barlow", system-ui, sans-serif;
+  --pw-font-text: "Shapiro Text", "Barlow", system-ui, sans-serif;
+  --pw-font-mono: "DM Mono", ui-monospace, monospace;
+  --pw-font-emoji: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+
+  --pw-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --pw-motion-snap: 80ms;
+  --pw-motion-tactile: 150ms;
+  --pw-motion-step: 240ms;
+  --pw-motion-plot: 1200ms;
+
+  /* Lab night: how the Lab looks on screens. */
+  --pw-role-ground: #0A0E2A;
+  --pw-role-text: #FFFFFF;
+  --pw-role-muted: #B4BAD6;
+  --pw-role-accent: #FA3A6B;
+  --pw-role-rule: #2C2C44;
+  --pw-role-focus: #FFFFFF;
+  --pw-role-hover: rgba(237, 240, 250, 0.12);
+  color-scheme: dark;
+}
+/* Lab day: Ink on white. Auto follows the system unless the visitor chose. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-light="night"]) {
+    --pw-role-ground: #FFFFFF; --pw-role-text: #0A0E2A; --pw-role-muted: #3B4266;
+    --pw-role-accent: #D11E50; --pw-role-rule: #D5D9E8; --pw-role-focus: #0A0E2A;
+    --pw-role-hover: #EDF0FA; color-scheme: light;
+  }
+}
+:root[data-light="day"] {
+  --pw-role-ground: #FFFFFF; --pw-role-text: #0A0E2A; --pw-role-muted: #3B4266;
+  --pw-role-accent: #D11E50; --pw-role-rule: #D5D9E8; --pw-role-focus: #0A0E2A;
+  --pw-role-hover: #EDF0FA; color-scheme: light;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --pw-motion-snap: 0ms; --pw-motion-tactile: 0ms; --pw-motion-step: 0ms; --pw-motion-plot: 0ms; }
 }
 
-@layer base {
-  body {
-    @apply bg-[#08001a] text-[#e8d5ff] antialiased min-h-screen font-serif overflow-x-hidden;
-  }
-}
+html, body { background: var(--pw-role-ground); color: var(--pw-role-text); }
+body { font-family: var(--pw-font-text); font-size: 18px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--pw-role-focus); outline-offset: 3px; }
+a { color: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 
-@layer utilities {
-  .bg-glow-top {
-    background: radial-gradient(circle at center, var(--color-accent-purple) 0%, transparent 70%);
-  }
-  .bg-glow-bottom {
-    background: radial-gradient(circle at center, var(--color-accent-blue) 0%, transparent 70%);
-  }
-}
+.page { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+@media (min-width: 720px) { .page { padding: 0 48px; } }
+
+/* Header: the bug at 40px, the name beside it. */
+.site-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 24px 0; }
+.site-header .name { display: flex; align-items: center; gap: 12px; text-decoration: none; font-family: var(--pw-font-heavy); font-weight: 700; font-size: 18px; }
+.site-header nav { font-family: var(--pw-font-text); font-size: 16px; }
+
+/* Labels: Shapiro Wide, spaced caps. Never mono. */
+.label { font-family: var(--pw-font-wide); font-weight: 700; font-size: 12px; line-height: 1.4; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pw-role-muted); }
+
+/* The masthead strip: a rule, then who, what, when. */
+.masthead { border-top: 2px solid var(--pw-role-text); padding-top: 16px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.masthead .label:first-child { color: var(--pw-role-text); }
+.masthead .label:last-child { text-align: right; }
+@media (max-width: 599px) { .masthead { grid-template-columns: 1fr; gap: 4px; } .masthead .label:last-child { text-align: left; } }
+main { min-height: 60vh; }
+
+/* Labels live in the margin. */
+.row { display: grid; gap: 8px 32px; padding: 32px 0; }
+@media (min-width: 720px) { .row { grid-template-columns: 184px 1fr; } }
+.row + .row { border-top: 1px solid var(--pw-role-rule); }
+
+.hero-title { font-family: var(--pw-font-heavy); font-weight: 700; font-size: clamp(56px, 10.5vw, 128px); line-height: 0.95; letter-spacing: -0.02em; margin: 48px 0 24px; max-width: 11ch; }
+.lede { font-size: clamp(18px, 2.2vw, 22px); max-width: 34em; }
+.muted { color: var(--pw-role-muted); }
+.small { font-size: 15px; }
+
+/* Invitation bracket: a real button, in the accent, that opens on reach. */
+.bracket { font-family: var(--pw-font-mono); font-weight: 500; font-size: 22px; letter-spacing: 0.04em; color: var(--pw-role-accent); background: none; border: 0; padding: 12px 0; min-height: 44px; cursor: pointer; text-transform: uppercase; }
+.bracket span { display: inline-block; padding: 0; border-bottom: 3px solid transparent; transition: padding var(--pw-motion-tactile) var(--pw-ease), border-color var(--pw-motion-tactile) var(--pw-ease); }
+.bracket:hover span, .bracket:focus-visible span { padding: 0 6px; border-bottom-color: currentColor; }
+
+/* Buttons: outlined; Tint on hover; the arrow nudges; press settles. */
+.btn { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; padding: 10px 20px; border: 2px solid var(--pw-role-text); border-radius: 0; background: transparent; color: var(--pw-role-text); font-family: var(--pw-font-heavy); font-weight: 700; font-size: 16px; cursor: pointer; text-decoration: none; transition: background var(--pw-motion-tactile) var(--pw-ease), transform var(--pw-motion-snap) var(--pw-ease); }
+.btn:hover { background: var(--pw-role-hover); }
+.btn:active { transform: translateY(1px); }
+.btn .arrow { display: inline-block; transition: transform var(--pw-motion-tactile) var(--pw-ease); }
+.btn:hover .arrow { transform: translateX(4px); }
+.btn:disabled { opacity: 0.5; cursor: default; }
+.textlink { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; min-height: 44px; }
+
+/* Machine words: DM Mono, marked as the machine's own. */
+.machine { font-family: var(--pw-font-mono); font-size: 17px; line-height: 1.65; max-width: 62ch; }
+.machine p + p { margin-top: 1em; }
+.casing { font-family: var(--pw-font-mono); font-size: 13px; letter-spacing: 0.04em; color: var(--pw-role-muted); }
+
+.ruling { font-family: var(--pw-font-emoji); font-size: clamp(144px, 28vw, 280px); line-height: 1; }
+.essence { font-family: var(--pw-font-heavy); font-weight: 700; font-size: clamp(28px, 4.4vw, 40px); line-height: 1.12; max-width: 20ch; }
+.grid-emoji { font-family: var(--pw-font-emoji); font-size: 32px; line-height: 1.4; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+
+/* The band: a field on an ink plate. Text stays off it. */
+.band { background: var(--pw-color-ink); display: block; width: 100%; height: auto; }
+.band .trace { stroke-dasharray: var(--len); stroke-dashoffset: var(--len); animation: plot var(--pw-motion-plot) linear forwards; }
+@keyframes plot { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .band .trace { animation: none; stroke-dashoffset: 0; } }
+
+.log { font-family: var(--pw-font-mono); font-size: 16px; line-height: 1.9; list-style: none; padding: 0; }
+.log li::before { content: "> "; color: var(--pw-role-accent); }
+
+.field { display: block; width: 100%; max-width: 28rem; min-height: 44px; padding: 10px 12px; border: 2px solid var(--pw-role-text); border-radius: 0; background: transparent; color: var(--pw-role-text); font-family: var(--pw-font-text); font-size: 18px; }
+.check { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
+.check input { appearance: none; width: 22px; height: 22px; flex: none; margin-top: 3px; border: 2px solid var(--pw-role-text); border-radius: 0; background: transparent; cursor: pointer; }
+.check input:checked { background: var(--pw-role-text); box-shadow: inset 0 0 0 3px var(--pw-role-ground); }
+
+.card-preview { width: 100%; max-width: 540px; height: auto; display: block; border: 1px solid var(--pw-role-rule); }
+
+.record { font-family: var(--pw-font-mono); font-size: 13px; letter-spacing: 0.04em; color: var(--pw-role-muted); padding: 16px 0; border-top: 1px solid var(--pw-role-rule); }
+@media (max-width: 479px) { .record .sep { display: none; } .record .field-part { display: block; } }
+
+.site-footer { padding: 48px 0 32px; display: grid; gap: 16px; }
+.site-footer .links { display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 15px; }
+.site-footer .light a[aria-current="true"] { text-decoration-thickness: 2px; }
+.site-footer .light a:not([aria-current="true"]) { text-decoration: none; }
+
+.dropping::after { content: ""; position: fixed; inset: 12px; border: 2px dashed var(--pw-role-accent); pointer-events: none; z-index: 20; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
