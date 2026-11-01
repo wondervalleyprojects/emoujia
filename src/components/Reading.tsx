@@ -1,59 +1,54 @@
-import { motion } from 'motion/react';
-import { Footer } from './Footer';
+import { formatDate, parseReading } from '../lib/grid';
+import TraceBand from './TraceBand';
 
-interface ReadingProps {
-  reading: string;
-}
+interface Props { emojis: string[]; reading: string; essence: string; model: string }
 
-export default function Reading({ reading }: ReadingProps) {
-  // Parsing the reading into sections based on the prompt's ALL-CAPS headers
-  const sections = reading.split(/(THE RULING SIGN|THE SHADOW|THE READING|YOUR FORECAST|THE ESSENCE)/g);
-  
-  const parsedSections = [];
-  for (let i = 1; i < sections.length; i += 2) {
-    const header = sections[i];
-    // Trim and clean leading/trailing whitespace including indentation
-    const content = sections[i + 1]?.trim().replace(/^[ \t]+/gm, ''); 
-    if (header && content && header !== 'THE ESSENCE') {
-      parsedSections.push({ header, content });
-    }
-  }
+const LABELS: Record<string, string> = {
+  'THE RULING SIGN': 'Ruling sign',
+  'THE SHADOW': 'Shadow',
+  'THE READING': 'The reading',
+  'YOUR FORECAST': 'Forecast',
+};
 
+export default function Reading({ emojis, reading, essence, model }: Props) {
+  const sections = parseReading(reading).filter((s) => s.header !== 'THE ESSENCE');
   return (
-    <div className="w-full max-w-2xl mx-auto px-4 py-12 relative">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8 }}
-        className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 md:p-12 shadow-2xl relative overflow-hidden"
-      >
-        {/* Decorative corner elements */}
-        <div className="absolute top-0 left-0 w-24 h-24 border-t border-l border-white/20 rounded-tl-[2rem] pointer-events-none" />
-        <div className="absolute bottom-0 right-0 w-24 h-24 border-b border-r border-white/20 rounded-br-[2rem] pointer-events-none" />
-        
-        <div className="space-y-16">
-          {parsedSections.map((section, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * index }}
-              className="space-y-4 relative"
-            >
-              <h2 className="font-mono text-xs uppercase tracking-tighter text-[#7b2fc9]">
-                {section.header}
-              </h2>
-              <div className={`leading-relaxed text-lg ${section.header === 'YOUR FORECAST' ? 'text-xl md:text-2xl italic text-white font-medium mb-8' : 'opacity-90 font-serif'}`}>
-                 {section.content.split('\n').map((para, k) => (
-                   <p key={k} className="mb-4">{para}</p>
-                 ))}
-              </div>
-            </motion.div>
-          ))}
+    <article aria-labelledby="reading-title">
+      <TraceBand emojis={emojis} />
+      <div className="masthead" style={{ marginTop: 32 }}>
+        <p className="label">Wonder Valley Projects Lab</p>
+        <p className="label" id="reading-title">Emoujia, a reading</p>
+        <p className="label">{formatDate()}</p>
+      </div>
+
+      <section className="row">
+        <h2 className="label">Ruling sign</h2>
+        <p className="ruling" aria-label={`Your ruling sign: ${emojis[0]}`}>{emojis[0]}</p>
+      </section>
+      {essence && (
+        <section className="row">
+          <h2 className="label">Essence</h2>
+          <p className="essence">{essence}</p>
+        </section>
+      )}
+      <section className="row">
+        <h2 className="label">The grid</h2>
+        <p className="grid-emoji">{emojis.map((e, i) => <span key={i}>{e}</span>)}</p>
+      </section>
+
+      <section className="row">
+        <h2 className="label">Read by</h2>
+        <div>
+          <p className="small">The words below are the machine's own. No person reviewed&nbsp;them.</p>
+          <p className="casing" style={{ marginTop: 8 }}>CASING · MODEL {(model || 'GEMINI').toUpperCase()} · EDITS 0</p>
         </div>
-      </motion.div>
-      
-      <Footer />
-    </div>
+      </section>
+      {sections.map((s) => (
+        <section className="row" key={s.header}>
+          <h2 className="label">{LABELS[s.header] || s.header}</h2>
+          <div className="machine">{s.content.split(/\n+/).map((p, k) => <p key={k}>{p}</p>)}</div>
+        </section>
+      ))}
+    </article>
   );
 }

@@ -1,234 +1,155 @@
-import { useState, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Header from './components/Header';
-import Upload from './components/Upload';
-import EmojiGrid from './components/EmojiGrid';
+import Intro from './components/Intro';
+import Loading from './components/Loading';
 import Reading from './components/Reading';
-import ShareCard, { ShareCardHandle } from './components/ShareCard';
 import EmailForm from './components/EmailForm';
-import { generateFullReading } from './services/geminiService';
-import { getPalette } from './utils/emojiPalettes';
-import { motion, AnimatePresence } from 'motion/react';
+import Footer from './components/Footer';
+import RecordLine from './components/RecordLine';
+import { generateFullReading, RestingError } from './services/geminiService';
+import { parseReading, splitEmoji } from './lib/grid';
+import { shareCardDataUrl } from './lib/shareCard';
 
-type AppState = 'idle' | 'uploading' | 'reading_emojis' | 'generating_reading' | 'complete' | 'error';
+type View = 'idle' | 'reading' | 'complete' | 'resting' | 'error';
+
+// Shrinks the screenshot before it leaves the phone.
+function toJpeg(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('That file could not be read.'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('That file is not an image we can read.'));
+      img.onload = () => {
+        const scale = Math.min(1, 1024 / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+        c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL('image/jpeg', 0.8));
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 export default function App() {
-  const [state, setState] = useState<AppState>('idle');
-  const [screenshot, setScreenshot] = useState<string | null>(null);
+  const [view, setView] = useState<View>('idle');
   const [emojis, setEmojis] = useState<string[]>([]);
-  const [reading, setReading] = useState<string>('');
-  const [error, setError] = useState<string | null>(null);
-  const shareCardRef = useRef<ShareCardHandle>(null);
+  const [reading, setReading] = useState('');
+  const [model, setModel] = useState('');
+  const [card, setCard] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [dropping, setDropping] = useState(false);
 
-  const handleUpload = async (base64: string) => {
-    setScreenshot(base64);
-    setState('generating_reading'); // Combined state
-    setError(null);
+  const essence = useMemo(() => parseReading(reading).find((s) => s.header === 'THE ESSENCE')?.content.split('\n')[0] || '', [reading]);
 
+  const handleFile = async (file: File) => {
+    setNotice(null);
+    if (!file.type.startsWith('image/')) { setNotice('That is not an image. Bring a screenshot of your emoji keyboard.'); return; }
+    if (file.size > 12 * 1024 * 1024) { setNotice('That image is too large. A plain screenshot will do.'); return; }
+    setView('reading'); window.scrollTo(0, 0);
     try {
-      const { emojis: detectedEmojis, reading: textReading } = await generateFullReading(base64);
-      
-      if (detectedEmojis.length === 0) {
-        setState('error');
-        setError("The oracle couldn't read this grid. Make sure you've screenshotted the Frequently Used section of your emoji keyboard.");
+      const image = await toJpeg(file);
+      const result = await generateFullReading(image);
+      const found = splitEmoji(result.emojis);
+      if (!found.length) {
+        setView('idle');
+        setNotice("The oracle couldn't find a grid in that image. Screenshot the Frequently Used section of your emoji keyboard.");
         return;
       }
-      
-      setEmojis(detectedEmojis);
-      setReading(textReading);
-      setState('complete');
-    } catch (err: any) {
+      setEmojis(found); setReading(result.reading); setModel(result.model || ''); setView('complete'); window.scrollTo(0, 0);
+    } catch (err) {
+      if (err instanceof RestingError) { setView('resting'); return; }
       console.error(err);
-      setState('error');
-      
-      const errorMessage = err?.message || String(err);
-      if (errorMessage.toLowerCase().includes('quota') || errorMessage.toLowerCase().includes('429')) {
-        setError("The oracle's energy is depleted (Quota reached). This is a limit of the free Gemini API. It usually resets within a few hours or a day.");
-      } else {
-        setError("The oracle is silent. There may be a connection issue or the grid was unreadable. " + (errorMessage ? `(${errorMessage})` : "Try again later."));
-      }
+      setView('error');
     }
   };
 
-  const handleSendEmail = async (email: string, optIn: boolean) => {
-    const shareCardImage = await shareCardRef.current?.capture();
-    
+  useEffect(() => {
+    if (view !== 'complete') return;
+    setCard(null);
+    shareCardDataUrl(emojis, essence).then(setCard);
+  }, [view, emojis, essence]);
+
+  // Drop a screenshot anywhere on the page.
+  useEffect(() => {
+    const over = (e: DragEvent) => { e.preventDefault(); if (view === 'idle') setDropping(true); };
+    const leave = (e: DragEvent) => { if (!e.relatedTarget) setDropping(false); };
+    const drop = (e: DragEvent) => { e.preventDefault(); setDropping(false); const f = e.dataTransfer?.files?.[0]; if (f && view === 'idle') handleFile(f); };
+    window.addEventListener('dragover', over); window.addEventListener('dragleave', leave); window.addEventListener('drop', drop);
+    return () => { window.removeEventListener('dragover', over); window.removeEventListener('dragleave', leave); window.removeEventListener('drop', drop); };
+  });
+
+  const sendEmail = async (email: string, optIn: boolean) => {
     const response = await fetch('/api/send-reading', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email,
-        readingText: reading,
-        essence,
-        shareCardImage,
-        optIn
-      }),
+      body: JSON.stringify({ email, readingText: reading, essence, shareCardImage: card, optIn }),
     });
-
     if (!response.ok) {
-      let errorMessage = 'Failed to send email';
-      try {
-        const data = await response.json();
-        errorMessage = data.error || errorMessage;
-      } catch (jsonErr) {
-        try {
-          const rawText = await response.text();
-          errorMessage = rawText.substring(0, 150) || `Status ${response.status}: ${response.statusText}`;
-        } catch {
-          errorMessage = `HTTP Status ${response.status} (${response.statusText || 'Unknown Error'})`;
-        }
-      }
-      throw new Error(errorMessage);
+      let message = 'The email did not go out. Try again in a minute.';
+      try { message = (await response.json()).error || message; } catch { /* not JSON */ }
+      throw new Error(message);
     }
   };
 
-  const palette = useMemo(() => {
-    if (emojis.length > 0) return getPalette(emojis[0]);
-    return getPalette('');
-  }, [emojis]);
-
-  const forecast = useMemo(() => {
-    const match = reading.match(/YOUR FORECAST\n([\s\S]*?)(?=\n\n(?:THE ESSENCE|---)|$)/i);
-    return match ? match[1].trim() : '';
-  }, [reading]);
-
-  const essence = useMemo(() => {
-    const match = reading.match(/THE ESSENCE\n([\s\S]*?)(?=\n---|$)/i);
-    return match ? match[1].trim() : '';
-  }, [reading]);
-
-  const loadingPhrases = [
-    "Reading the grid...",
-    "Consulting the archives...",
-    "Mapping the emotional frequency...",
-    "Reticulating Splines...",
-    "Making the Connections...",
-    "Folded Hands Emoji...",
-    "Texting the spirits...",
-    "Deciphering the unspoken...",
-    "Tracing the digital patterns...",
-    "Sifting through the symbols..."
-  ];
-
-  const [loadingPhraseIndex, setLoadingPhraseIndex] = useState(0);
-
-  // Rotate loading phrases every 2.5 seconds
-  useMemo(() => {
-    if (state === 'reading_emojis' || state === 'generating_reading') {
-      const interval = setInterval(() => {
-        setLoadingPhraseIndex(prev => (prev + 1) % loadingPhrases.length);
-      }, 2500);
-      return () => clearInterval(interval);
-    }
-  }, [state]);
-
-  const loadingText = useMemo(() => {
-    if (state === 'reading_emojis') return "Accessing the oracle...";
-    return loadingPhrases[loadingPhraseIndex];
-  }, [state, loadingPhraseIndex]);
-
-  const reset = () => {
-    setState('idle');
-    setEmojis([]);
-    setReading('');
-    setScreenshot(null);
-  };
+  const reset = () => { setView('idle'); setEmojis([]); setReading(''); setModel(''); setCard(null); window.scrollTo(0, 0); };
 
   return (
-    <div 
-      className="min-h-screen transition-colors duration-1000 relative"
-      style={{ backgroundColor: palette.bg, color: palette.text }}
-    >
-      {/* Immersive background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-glow-top opacity-20 blur-[120px]"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-glow-bottom opacity-20 blur-[100px]"></div>
-      </div>
-
-      <div className="relative z-10 flex flex-col items-center">
-        <Header />
-        <AnimatePresence mode="wait">
-        {state === 'idle' && (
-          <motion.div
-            key="idle"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <Upload onUpload={handleUpload} isLoading={false} />
-          </motion.div>
-        )}
-
-        {(state === 'reading_emojis' || state === 'generating_reading') && (
-          <motion.div
-            key="loading"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 flex flex-col items-center justify-center p-8 bg-black/40 z-50 backdrop-blur-sm"
-          >
-            <div className="w-full max-w-sm aspect-[9/16] relative mb-12 overflow-hidden rounded-xl border border-white/10">
-              {screenshot && <img src={screenshot} alt="Uploading" className="w-full h-full object-cover opacity-30 grayscale" />}
-              <div className="absolute inset-0 flex items-center justify-center">
-                 <motion.div
-                   animate={{ opacity: [0.4, 1, 0.4] }}
-                   transition={{ duration: 2, repeat: Infinity }}
-                   className="font-mono text-sm tracking-[0.2em] uppercase text-center px-4"
-                 >
-                   {loadingText}
-                 </motion.div>
+    <div className={`page${dropping ? ' dropping' : ''}`}>
+      <Header />
+      <main>
+        {view === 'idle' && <Intro onFile={handleFile} notice={notice} />}
+        {view === 'reading' && <Loading />}
+        {view === 'complete' && (
+          <>
+            <Reading emojis={emojis} reading={reading} essence={essence} model={model} />
+            <section className="row">
+              <h2 className="label">Share card</h2>
+              <div style={{ display: 'grid', gap: 16 }}>
+                {card
+                  ? <img className="card-preview" src={card} alt={`Your share card: ruling sign ${emojis[0]}, essence: ${essence}`} />
+                  : <p className="small muted">Drawing your card.</p>}
+                <div>
+                  <a className="btn" href={card || undefined} download="emoujia-reading.jpg" aria-disabled={!card}>
+                    Download the share card <span className="arrow" aria-hidden="true">→</span>
+                  </a>
+                </div>
               </div>
+            </section>
+            <section className="row">
+              <h2 className="label">Keep it</h2>
+              <EmailForm onSend={sendEmail} />
+            </section>
+            <p style={{ padding: '16px 0' }}><button type="button" className="textlink" onClick={reset}>Read another grid</button></p>
+            <RecordLine />
+          </>
+        )}
+        {view === 'resting' && (
+          <section className="row" style={{ marginTop: 24 }}>
+            <h2 className="label">The oracle is resting</h2>
+            <div>
+              <p className="essence" style={{ maxWidth: '22ch' }}>The oracle has read all it can for&nbsp;today.</p>
+              <p className="small" style={{ marginTop: 16, maxWidth: '36em' }}>
+                Emoujia runs on a free allowance from Google, and today's is spent. It comes back on its own. Try again tomorrow.
+                Nothing you sent was&nbsp;kept.
+              </p>
+              <p style={{ marginTop: 16 }}><button type="button" className="textlink" onClick={reset}>Back to the start</button></p>
             </div>
-          </motion.div>
+          </section>
         )}
-
-        {state === 'complete' && (
-          <motion.div
-            key="complete"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="pb-24 pt-12"
-          >
-             <EmojiGrid emojis={emojis} />
-             <div className="w-full max-w-2xl mx-auto px-4 h-px bg-white/5 my-8" />
-             <Reading reading={reading} />
-             <ShareCard 
-               ref={shareCardRef}
-               rulingEmoji={emojis[0]} 
-               grid={emojis} 
-               forecast={forecast} 
-               essence={essence}
-               palette={palette} 
-             />
-             <EmailForm onSend={handleSendEmail} />
-             <div className="flex justify-center pb-12">
-               <button 
-                 onClick={reset}
-                 className="font-mono text-[10px] uppercase tracking-[0.3em] opacity-40 hover:opacity-80 transition-opacity"
-               >
-                 Start Over
-               </button>
-             </div>
-          </motion.div>
+        {view === 'error' && (
+          <section className="row" style={{ marginTop: 24 }}>
+            <h2 className="label">The oracle is silent</h2>
+            <div>
+              <p className="small" style={{ maxWidth: '36em' }}>Something went wrong between here and the machine. Try again in a minute. Nothing you sent was&nbsp;kept.</p>
+              <p style={{ marginTop: 16 }}><button type="button" className="textlink" onClick={reset}>Try again</button></p>
+            </div>
+          </section>
         )}
-
-        {state === 'error' && (
-          <motion.div
-            key="error"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center min-h-screen text-center px-4"
-          >
-            <p className="max-w-md mb-8 opacity-80 leading-relaxed italic">{error}</p>
-            <button 
-              onClick={reset}
-              className="px-8 py-3 rounded-full font-mono uppercase tracking-widest text-sm border border-white/20 hover:bg-white hover:text-black transition-colors"
-            >
-              Retry
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      </div>
+      </main>
+      <Footer />
     </div>
   );
 }

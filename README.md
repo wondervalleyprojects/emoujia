@@ -1,87 +1,67 @@
-# EMOUJIA
+# Emoujia
 
-An oracle for your frequently used emoji.
+What do your emojis say about you?
 
-The app reads your iPhone's frequently used emoji grid the way a palmist reads a hand. Upload a screenshot. Get a reading. Atmospheric, psychologically acute, slightly unnerving.
+Emoujia reads the Frequently Used section of your emoji keyboard the way a palmist reads a hand. Upload a screenshot. Get a reading. Atmospheric, psychologically acute, slightly unnerving.
 
-A Wonder Valley Projects Lab. Read by a machine, kept by no one: readings are never stored. The only thing Emoujia keeps is the email address of someone who checks "Subscribe for more information."
+A Wonder Valley Projects Lab, live at [emoujia.com](https://emoujia.com). Read by a machine, kept by no one.
 
-Live at [emoujia.com](https://emoujia.com).
+## The idea
+
+Emoujia comes from a simple question: how could someone's personal data work for them, and be pleasurable and fun? Your phone quietly ranks the emoji you use most. Emoujia hands that ranking back to you as a reading, and then lets go of it. More in [docs/ABOUT.md](docs/ABOUT.md).
 
 ## How it works
-EMOUJIA uses **Google Gemini Flash** (vision; `gemini-2.5-flash`, falling back to `gemini-3.5-flash`) to analyze a screenshot of a user's emoji keyboard. The process is optimized using a single-pass extraction and generation logic:
-1.  **Vision Analysis**: Detects and extracts exact emojis from the 30-grid "Frequently Used" section.
-2.  **Oracle Interpretation**: Synthesizes the extracted emojis into a multi-section reading:
-    -   **THE RULING SIGN**: An analysis of the primary emoji.
-    -   **THE SHADOW**: An overlooked pattern within the grid.
-    -   **THE READING**: A deep synthesis of the full emotional architecture.
-    -   **YOUR FORECAST**: A one-sentence direction.
-    -   **THE ESSENCE**: A short, atmospheric summation.
 
-## Features
--   **Combined Extraction & Generation**: High-speed processing using Gemini Flash.
--   **Shareable Omens**: Generate a visual card of your reading to share on social media.
--   **Preserve the Omens**: Email yourself the reading and share card. The reading is sent, then not kept.
--   **Subscribe for more information**: An unchecked box. Only people who check it are kept on the list.
--   **Scheduled export**: A Netlify scheduled function (`netlify/functions/export-subscribers.mts`) emails the subscriber CSV on the 1st and 15th for the Substack import.
+1. You screenshot the Frequently Used section of your emoji keyboard and bring it to the page.
+2. The browser shrinks it and sends it to Google's Gemini (`gemini-2.5-flash`, falling back to `gemini-3.5-flash`), which lists the emoji and writes a reading in five parts:
+   - **The ruling sign**: the first emoji.
+   - **The shadow**: a pattern you overlooked.
+   - **The reading**: the whole grid.
+   - **Your forecast**: one sentence.
+   - **The essence**: one line for a spectator.
+3. The page shows the reading, a trace drawn from your grid, and a share card drawn in your browser.
+4. You can download the card or email yourself the reading. Nothing about it is stored.
 
-## Getting started
-1.  Clone the repo: `git clone https://github.com/wondervalleyprojects/emoujia.git`
-2.  `npm install`
-3.  Copy `.env.example` to `.env` and configure:
-    -   `GEMINI_API_KEY`: Get one at [AI Studio](https://aistudio.google.com/app/apikey).
-    -   `GMAIL_USER`: Your primary Gmail address.
-    -   `GMAIL_APP_PASSWORD`: A 16-character Google App Password.
-4.  `npm run dev`
+## What we keep
 
-## Deployment (Netlify)
-This project is configured for one-click deployment to Netlify.
+Nothing about the reading. The only thing kept is the email address of someone who checks "Subscribe for more information," which starts unchecked. The screenshot goes to Google's Gemini on the free tier, whose terms let Google use it to improve its models; the page says so under the upload button. That is a logged exception to the studio's rules, kept so the Lab stays free to run. Full account: [docs/PRIVACY.md](docs/PRIVACY.md).
 
-1.  Connect your GitHub repository to Netlify.
-2.  Set the following **Environment Variables** in the Netlify UI (Site settings > Build & deploy > Environment):
-    -   `GEMINI_API_KEY`: Your Google AI Studio key.
-    -   `GMAIL_USER`: Your Gmail address.
-    -   `GMAIL_APP_PASSWORD`: Your 16-character App Password.
-    -   `VITE_APP_URL`: Your final Netlify URL (e.g., `https://emoujia.netlify.app`).
-    -   `FIREBASE_PROJECT_ID`: From your Firebase project settings.
-    -   `FIREBASE_APP_ID`: From your Firebase project settings.
-    -   `FIREBASE_API_KEY`: From your Firebase project settings.
-    -   `FIREBASE_AUTH_DOMAIN`: From your Firebase project settings.
-    -   `FIREBASE_DATABASE_ID`: From your Firebase project settings.
-    -   `FIREBASE_STORAGE_BUCKET`: From your Firebase project settings.
-    -   `FIREBASE_MESSAGING_SENDER_ID`: From your Firebase project settings.
-    -   `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY`: the `client_email` and `private_key` fields from a Firebase service account key. Required for the subscriber export. (`FIREBASE_SERVICE_ACCOUNT`, the whole key file, also works locally but is too big for Netlify's 4KB function environment.)
-    -   `EXPORT_SECRET`: A long random string. Opens `/api/admin/export-subscribers` to requests that send `Authorization: Bearer <EXPORT_SECRET>`. Unset, the endpoint answers 404.
-    -   `EXPORT_TO`: Optional. Where the scheduled CSV goes; defaults to `GMAIL_USER`.
-
-### Handling Netlify Secrets Scanner
-Netlify's automated scanner may flag Firebase public keys as secrets. If your build is blocked despite removing hardcoded secrets, add this environment variable to Netlify:
-- `SECRETS_SCAN_OMIT_KEYS`: `FIREBASE_,VITE_`
-
-3.  The `netlify.toml` file automatically configures the build and API routes.
-
-### Subscriber export
-`netlify/functions/export-subscribers.mts` runs on a schedule (`0 16 1,15 * *`, UTC) and emails the CSV. To pull it by hand:
+## Run it locally
 
 ```
-curl -H "Authorization: Bearer $EXPORT_SECRET" https://emoujia.com/api/admin/export-subscribers
+npm install
+cp .env.example .env   # add GEMINI_API_KEY at least
+npm run dev            # http://localhost:3000
 ```
 
-or run `npx tsx scripts/export_subscribers.ts` with the env vars set.
+For Shapiro locally, put the three `.woff2` files in `public/fonts/shapiro/` (never commit them). Without them Barlow stands in.
 
-### Firestore rules
-`firestore.rules` denies everything except creating a well-formed subscriber record. Readings are never written. Once the service account is set, the subscriber block can be removed too.
+## Deploy
 
-## Tech Stack
--   **Frontend**: React 19, Vite, Tailwind CSS, Motion.
--   **Serverless Backend**: Netlify Functions (Express via `serverless-http`).
--   **AI**: Google Gemini Flash via `@google/genai`.
--   **Database**: Firestore, for opted-in subscribers only.
--   **Email**: Nodemailer with Gmail SMTP.
--   **Utilities**: `html2canvas` for image generation, `csv-stringify` for exports.
+Netlify builds `main` for the `emoujia` project. `npm run build` fetches the fonts from the private font repo when `FONTS_REPO` and `FONTS_TOKEN` are set, then runs Vite. Every setting, key and console step is in [docs/OPERATIONS.md](docs/OPERATIONS.md).
+
+## Docs
+
+| | |
+| --- | --- |
+| [About](docs/ABOUT.md) | The idea and the terms. |
+| [Privacy](docs/PRIVACY.md) | Exactly where every piece of data goes. |
+| [Design](docs/DESIGN.md) | Public Wonder in the Lab face: type, color, the trace, the share card, motion. |
+| [Architecture](docs/ARCHITECTURE.md) | Files, endpoints, data, build. |
+| [Operations](docs/OPERATIONS.md) | Environment variables, fonts, the export, removal requests, troubleshooting. |
+| [Changelog](CHANGELOG.md) | What changed and when. |
+| [Lab migration plan](docs/lab-migration-plan.md) | Decisions and phases for joining the Lab. |
+
+## Stack
+
+React 19 and Vite; Netlify Functions (Express via `serverless-http`); Google Gemini via `@google/genai`; Firestore for opted-in subscribers only; Nodemailer with Gmail. Type: Shapiro (licensed, fetched at build), Barlow and DM Mono (open licenses, in `public/fonts/`).
 
 ## License
-MIT
 
-## Made by
-A [Wonder Valley Projects](https://wondervalleyprojects.com) Lab
+Code: MIT. The Wonder Valley Projects mark (`public/wvp-bug.svg`) and the Shapiro typeface are not covered by the MIT license.
+
+---
+
+A [Wonder Valley Projects](https://wondervalleyprojects.com) Lab.
+
+`RECORD · LAB · EMJ-001 · 01 NOV 2026 · JG + MACHINE ASSIST · PUBLISHED`

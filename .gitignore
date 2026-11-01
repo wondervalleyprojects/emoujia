@@ -5,3 +5,7 @@ dist/
 .env.*.local
 *.log
 .DS_Store
+
+# Shapiro is licensed (MyFonts webfont license) and this repo is public:
+# never commit the font files. Drop them here locally or at deploy time.
+public/fonts/shapiro/
