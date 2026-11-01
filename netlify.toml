@@ -4,6 +4,8 @@
 
 [functions]
   directory = "netlify/functions"
+  # Ship firebase-admin as a plain node module instead of bundling it.
+  external_node_modules = ["firebase-admin"]
 
 [[redirects]]
   from = "/api/*"

@@ -5,33 +5,29 @@
       "description": "User who opted in for updates",
       "type": "object",
       "properties": {
-        "email": { "type": "string", "format": "email" },
-        "subscribedAt": { "type": "string", "format": "date-time" },
-        "source": { "type": "string", "description": "Where the subscription came from (e.g. reading)" }
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "subscribedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where the subscription came from (e.g. reading)"
+        }
       },
-      "required": ["email", "subscribedAt"]
-    },
-    "Reading": {
-      "title": "Reading",
-      "description": "A generated emoji reading",
-      "type": "object",
-      "properties": {
-        "email": { "type": "string", "format": "email" },
-        "readingText": { "type": "string" },
-        "emojis": { "type": "array", "items": { "type": "string" } },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["readingText", "emojis", "createdAt"]
+      "required": [
+        "email",
+        "subscribedAt"
+      ]
     }
   },
   "firestore": {
     "/subscribers/{email}": {
       "schema": "Subscriber",
       "description": "Newsletter subscribers"
-    },
-    "/readings/{readingId}": {
-      "schema": "Reading",
-      "description": "Saved readings"
     }
   }
 }

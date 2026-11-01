@@ -4,11 +4,12 @@ An oracle for your frequently used emoji.
 
 The app reads your iPhone's frequently used emoji grid the way a palmist reads a hand. Upload a screenshot. Get a reading. Atmospheric, psychologically acute, slightly unnerving.
 
-## Demo
-[Live demo](https://ais-pre-eydhglqwgqizslzfccu43x-261071089900.us-east5.run.app)
+A Wonder Valley Projects Lab. Read by a machine, kept by no one: readings are never stored. The only thing Emoujia keeps is the email address of someone who checks "Subscribe for more information."
+
+Live at [emoujia.com](https://emoujia.com).
 
 ## How it works
-EMOUJIA uses **Google Gemini 1.5 Flash** (vision) to analyze a screenshot of a user's emoji keyboard. The process is optimized using a single-pass extraction and generation logic:
+EMOUJIA uses **Google Gemini Flash** (vision; `gemini-2.5-flash`, falling back to `gemini-3.5-flash`) to analyze a screenshot of a user's emoji keyboard. The process is optimized using a single-pass extraction and generation logic:
 1.  **Vision Analysis**: Detects and extracts exact emojis from the 30-grid "Frequently Used" section.
 2.  **Oracle Interpretation**: Synthesizes the extracted emojis into a multi-section reading:
     -   **THE RULING SIGN**: An analysis of the primary emoji.
@@ -20,8 +21,9 @@ EMOUJIA uses **Google Gemini 1.5 Flash** (vision) to analyze a screenshot of a u
 ## Features
 -   **Combined Extraction & Generation**: High-speed processing using Gemini Flash.
 -   **Shareable Omens**: Generate a visual card of your reading to share on social media.
--   **Preserve the Omens**: Opt-in to receive your reading via email and join the Emoujia mailing list.
--   **Automated Exports**: A built-in system exports subscriber lists every bi-weekly for Substack integration.
+-   **Preserve the Omens**: Email yourself the reading and share card. The reading is sent, then not kept.
+-   **Subscribe for more information**: An unchecked box. Only people who check it are kept on the list.
+-   **Scheduled export**: A Netlify scheduled function (`netlify/functions/export-subscribers.mts`) emails the subscriber CSV on the 1st and 15th for the Substack import.
 
 ## Getting started
 1.  Clone the repo: `git clone https://github.com/wondervalleyprojects/emoujia.git`
@@ -48,6 +50,9 @@ This project is configured for one-click deployment to Netlify.
     -   `FIREBASE_DATABASE_ID`: From your Firebase project settings.
     -   `FIREBASE_STORAGE_BUCKET`: From your Firebase project settings.
     -   `FIREBASE_MESSAGING_SENDER_ID`: From your Firebase project settings.
+    -   `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY`: the `client_email` and `private_key` fields from a Firebase service account key. Required for the subscriber export. (`FIREBASE_SERVICE_ACCOUNT`, the whole key file, also works locally but is too big for Netlify's 4KB function environment.)
+    -   `EXPORT_SECRET`: A long random string. Opens `/api/admin/export-subscribers` to requests that send `Authorization: Bearer <EXPORT_SECRET>`. Unset, the endpoint answers 404.
+    -   `EXPORT_TO`: Optional. Where the scheduled CSV goes; defaults to `GMAIL_USER`.
 
 ### Handling Netlify Secrets Scanner
 Netlify's automated scanner may flag Firebase public keys as secrets. If your build is blocked despite removing hardcoded secrets, add this environment variable to Netlify:
@@ -55,14 +60,23 @@ Netlify's automated scanner may flag Firebase public keys as secrets. If your bu
 
 3.  The `netlify.toml` file automatically configures the build and API routes.
 
-### Handling Scheduled Exports
-Netlify Functions have an execution limit. For bi-weekly subscriber exports, it is recommended to use **Netlify Scheduled Functions** (requires a Pro plan or custom cron triggers) or a separate GitHub Action that calls the `/api/admin/export-subscribers` endpoint.
+### Subscriber export
+`netlify/functions/export-subscribers.mts` runs on a schedule (`0 16 1,15 * *`, UTC) and emails the CSV. To pull it by hand:
+
+```
+curl -H "Authorization: Bearer $EXPORT_SECRET" https://emoujia.com/api/admin/export-subscribers
+```
+
+or run `npx tsx scripts/export_subscribers.ts` with the env vars set.
+
+### Firestore rules
+`firestore.rules` denies everything except creating a well-formed subscriber record. Readings are never written. Once the service account is set, the subscriber block can be removed too.
 
 ## Tech Stack
 -   **Frontend**: React 19, Vite, Tailwind CSS, Motion.
 -   **Serverless Backend**: Netlify Functions (Express via `serverless-http`).
--   **AI**: Google Gemini 1.5 Flash via `@google/genai`.
--   **Database**: Firestore for readings and subscriber management.
+-   **AI**: Google Gemini Flash via `@google/genai`.
+-   **Database**: Firestore, for opted-in subscribers only.
 -   **Email**: Nodemailer with Gmail SMTP.
 -   **Utilities**: `html2canvas` for image generation, `csv-stringify` for exports.
 
@@ -70,4 +84,4 @@ Netlify Functions have an execution limit. For bi-weekly subscriber exports, it 
 MIT
 
 ## Made by
-[Wonder Valley Projects Lab](https://wondervalleyprojects.com)
+A [Wonder Valley Projects](https://wondervalleyprojects.com) Lab

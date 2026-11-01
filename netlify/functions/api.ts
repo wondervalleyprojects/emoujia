@@ -1,26 +1,12 @@
 import express from 'express';
 import serverless from 'serverless-http';
 import nodemailer from 'nodemailer';
-import { stringify } from 'csv-stringify/sync';
 import { GoogleGenAI } from "@google/genai";
 import * as dotenv from 'dotenv';
-import { initializeApp as initializeClientApp } from 'firebase/app';
-import { getFirestore as getClientFirestore, collection, addDoc, doc, setDoc, serverTimestamp, getDocs, query, orderBy } from 'firebase/firestore';
+import { saveSubscriber, subscribersCsv, exportAuthorized } from '../../server/store';
 
 dotenv.config();
 
-const firebaseConfig = {
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  appId: process.env.FIREBASE_APP_ID,
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  firestoreDatabaseId: process.env.FIREBASE_DATABASE_ID,
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-};
-
-const clientApp = initializeClientApp(firebaseConfig);
-const db = getClientFirestore(clientApp, firebaseConfig.firestoreDatabaseId);
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -148,38 +134,14 @@ router.post(['/send-reading', '/api/send-reading'], async (req, res) => {
   };
 
   try {
-    try {
-      // 1. Store/Update Subscriber if opted in with 2 second timeout
-      if (optIn) {
-        console.log("[DB] Attempting to store subscriber...");
-        await withTimeout(
-          setDoc(doc(db, 'subscribers', email.toLowerCase()), {
-            email: email.toLowerCase(),
-            subscribedAt: serverTimestamp(),
-            source: 'reading_form'
-          }, { merge: true }),
-          2000,
-          "Firestore subscriber save"
-        );
-        console.log("[DB] Subscriber stored successfully.");
+    // Readings are never stored. The email address is kept only when the person
+    // checked "Subscribe for more information."
+    if (optIn) {
+      try {
+        await withTimeout(saveSubscriber(email), 2000, 'Subscriber save');
+      } catch (dbError: any) {
+        console.warn('[DB Warning] Subscriber save failed. Sending the email anyway.', dbError?.message || dbError);
       }
-
-      // 2. Store Reading with 2 second timeout
-      console.log("[DB] Attempting to store reading...");
-      await withTimeout(
-        addDoc(collection(db, 'readings'), {
-          email: email.toLowerCase(),
-          readingText,
-          essence,
-          createdAt: serverTimestamp(),
-          optIn: !!optIn
-        }),
-        2000,
-        "Firestore reading save"
-      );
-      console.log("[DB] Reading stored successfully.");
-    } catch (dbError: any) {
-      console.warn("[DB Warning] Failed or timed out writing to Firestore database. Proceeding to send email anyway. Error:", dbError.message || dbError);
     }
 
     // 3. Send Email
@@ -201,11 +163,11 @@ router.post(['/send-reading', '/api/send-reading'], async (req, res) => {
     const appUrl = process.env.VITE_APP_URL || 'https://emoujia.app';
 
     const mailOptions: any = {
-      from: `"Emoujia Oracle" <${gmailUser}>`,
-      replyTo: gmailUser,
+      from: `"Emoujia, a Wonder Valley Projects Lab" <${gmailUser}>`,
+      replyTo: process.env.REPLY_TO || 'emoujia@wondervalleyprojects.com',
       to: email,
       subject: "Your Emoujia Reading",
-      text: `The Oracle has spoken.\n\n${emailBodyText}\n\n"${essence}"\n\nVisit your oracle again: ${appUrl}`,
+      text: `The Oracle has spoken.\n\n${emailBodyText}\n\n"${essence}"\n\nVisit your oracle again: ${appUrl}\n\nYour reading was sent and not kept.\n\n--\nSent by a machine for the Wonder Valley Projects Lab. Reviewed by a person: no. Replies reach a person.`,
       html: `
         <div style="font-family: serif; max-width: 600px; margin: 0 auto; color: #1a1a1a; padding: 20px;">
           <h1 style="text-align: center; letter-spacing: 0.3em; font-weight: normal; margin-bottom: 10px;">EMOUJIA</h1>
@@ -223,8 +185,9 @@ router.post(['/send-reading', '/api/send-reading'], async (req, res) => {
               <a href="${appUrl}" style="color: #1a1a1a; text-decoration: none; font-weight: bold; letter-spacing: 0.05em;">Visit the portal</a>
             </p>
             <p style="font-size: 11px; font-family: sans-serif; margin: 0;">
-              <a href="https://www.wondervalleyprojects.com" style="color: #888; text-decoration: none; letter-spacing: 0.05em;">a companion lab project</a>
+              <a href="https://www.wondervalleyprojects.com" style="color: #888; text-decoration: none; letter-spacing: 0.05em;">A Wonder Valley Projects Lab</a>
             </p>
+            <p style="font-size: 11px; font-family: sans-serif; margin-top: 16px; color: #555;">Your reading was sent and not kept.<br/>Sent by a machine for the Wonder Valley Projects Lab. Reviewed by a person: no. Replies reach a person.</p>
           </div>
         </div>
       `
@@ -339,27 +302,21 @@ router.post(['/send-reading', '/api/send-reading'], async (req, res) => {
   }
 });
 
-// Admin: Export Subscribers CSV
+// Admin: subscriber CSV. Closed unless EXPORT_SECRET is set; then it needs
+// "Authorization: Bearer <EXPORT_SECRET>". The scheduled email lives in
+// netlify/functions/export-subscribers.mts.
 router.get(['/admin/export-subscribers', '/api/admin/export-subscribers'], async (req, res) => {
+  if (!exportAuthorized(req.get('authorization'))) {
+    return res.status(404).json({ error: 'Not found' });
+  }
   try {
-    const q = query(collection(db, 'subscribers'), orderBy('subscribedAt', 'desc'));
-    const snapshot = await getDocs(q);
-    const subscribers = snapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        email: data.email,
-        subscribedAt: data.subscribedAt?.toDate?.()?.toISOString?.() || '',
-        source: data.source || ''
-      };
-    });
-
-    const csv = stringify(subscribers, { header: true });
+    const { csv } = await subscribersCsv();
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename=emoujia_subscribers.csv');
     res.send(csv);
   } catch (error: any) {
     console.error("Error exporting subscribers:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Export failed' });
   }
 });
 

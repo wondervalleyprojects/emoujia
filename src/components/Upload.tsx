@@ -106,7 +106,12 @@ export default function Upload({ onUpload, isLoading }: UploadProps) {
            <span className="text-[10px] uppercase font-mono tracking-tighter">Instructions: Screenshot emoji grid</span>
         </div>
       </motion.div>
-      
+
+      {/* Logged exception (EMJ-001, 1 Nov 2026): free Gemini tier, disclosed here. */}
+      <p className="mt-6 max-w-sm text-center text-[11px] leading-relaxed font-mono opacity-60">
+        Your screenshot is read by Google's Gemini, which may use it to improve its models. We keep nothing.
+      </p>
+
       <Footer />
     </div>
   );
