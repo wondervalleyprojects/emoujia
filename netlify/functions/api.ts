@@ -164,10 +164,10 @@ router.post(['/send-reading', '/api/send-reading'], async (req, res) => {
 
     const mailOptions: any = {
       from: `"Emoujia, a Wonder Valley Projects Lab" <${gmailUser}>`,
-      replyTo: gmailUser,
+      replyTo: process.env.REPLY_TO || 'emoujia@wondervalleyprojects.com',
       to: email,
       subject: "Your Emoujia Reading",
-      text: `The Oracle has spoken.\n\n${emailBodyText}\n\n"${essence}"\n\nVisit your oracle again: ${appUrl}\n\nYour reading was sent and not kept.\n\n--\nSent by a machine for the Wonder Valley Projects Lab. Reviewed by a person: no.`,
+      text: `The Oracle has spoken.\n\n${emailBodyText}\n\n"${essence}"\n\nVisit your oracle again: ${appUrl}\n\nYour reading was sent and not kept.\n\n--\nSent by a machine for the Wonder Valley Projects Lab. Reviewed by a person: no. Replies reach a person.`,
       html: `
         <div style="font-family: serif; max-width: 600px; margin: 0 auto; color: #1a1a1a; padding: 20px;">
           <h1 style="text-align: center; letter-spacing: 0.3em; font-weight: normal; margin-bottom: 10px;">EMOUJIA</h1>
@@ -187,7 +187,7 @@ router.post(['/send-reading', '/api/send-reading'], async (req, res) => {
             <p style="font-size: 11px; font-family: sans-serif; margin: 0;">
               <a href="https://www.wondervalleyprojects.com" style="color: #888; text-decoration: none; letter-spacing: 0.05em;">A Wonder Valley Projects Lab</a>
             </p>
-            <p style="font-size: 11px; font-family: sans-serif; margin-top: 16px; color: #555;">Your reading was sent and not kept.<br/>Sent by a machine for the Wonder Valley Projects Lab. Reviewed by a person: no.</p>
+            <p style="font-size: 11px; font-family: sans-serif; margin-top: 16px; color: #555;">Your reading was sent and not kept.<br/>Sent by a machine for the Wonder Valley Projects Lab. Reviewed by a person: no. Replies reach a person.</p>
           </div>
         </div>
       `
