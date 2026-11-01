@@ -10,15 +10,14 @@ Working plan for moving Emoujia into Public Wonder as a Lab. Status: DRAFT until
 - The subscriber export is closed behind `EXPORT_SECRET` and runs as a scheduled job that emails the CSV for the Substack import.
 - The bug is the master file (LOGO-001), never redrawn.
 - The page reads without JavaScript; the reading itself needs it.
-- Gemini's free tier stays the engine. Traffic is far below the Shapiro webfont license (10,000 pageviews a month).
+- Register: code EMJ approved; the site is EMJ-001.
+- Gemini's free tier stays the engine, as a logged exception (EMJ-001 Notes, 1 Nov 2026, allowed by JG, review 1 May 2027): its terms let Google use inputs to improve its models, which departs from the rule that participant material is never offered for training. Disclosed under the upload button: "Your screenshot is read by Google's Gemini, which may use it to improve its models. We keep nothing." Traffic is far below the Shapiro webfont license (10,000 pageviews a month).
 - Share card (comp E, `docs/comps/share-card-E-final.png`): "Wonder Valley Projects Lab" and the labels in Shapiro Wide, the Essence in Shapiro Heavy, everything else in DM Mono.
 - The site's Lab face, night by default: Ink ground, white text, Signal for thin lines and accents. The emoji are the only color.
 
 ## Open
 
-- Email signature for the reading email. Proposed: "Sent by a machine for the Wonder Valley Projects Lab. Reviewed by a person: no." Add "Replies reach a person." only if someone reads the inbox.
-- Register code for Emoujia. Proposed: EMJ.
-- Free tier honesty: the screenshot goes to Google's Gemini. On the free tier Google's terms let it use inputs to improve its products. Decide whether "kept by no one" needs a qualifier, or whether to move to the paid tier, which does not use inputs that way.
+- Email signature for the reading email. Proposed: "Sent by a machine for the Wonder Valley Projects Lab. Reviewed by a person: no." Add "Replies reach a person." only once we confirm which inbox GMAIL_USER is (japhy@ or operations@) and that the emoujia@ alias reaches Japhy.
 
 ## Phases
 
