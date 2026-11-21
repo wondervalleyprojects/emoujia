@@ -1,6 +1,6 @@
 # Emoujia in the Wonder Valley Projects Lab
 
-**Paused, 1 Nov 2026, by Japhy.** Phase 1 is live. Phases 2 and 3 are built and waiting in PR #2. Resume when the new wondervalleyprojects.com is ready, and restyle Emoujia to the final Public Wonder at the same time as the site, in one pass.
+**Paused, 1 Nov 2026, by Japhy. Resumed 20 Nov 2026.** Phase 1 is live. Phases 2 and 3 are built and waiting in PR #2. Phase 4, Emoujia's side, is built in 0.3.0 in the same pull request.
 
 Working plan for moving Emoujia into Public Wonder as a Lab. Status: DRAFT until Japhy signs it.
 
@@ -23,7 +23,7 @@ Working plan for moving Emoujia into Public Wonder as a Lab. Status: DRAFT until
 1. Make it true: stop storing readings, uncheck opt-in, lock the export, real bug, no-JS page, README. (Done, merged 1 Nov 2026, PR #1.)
 2. Lab skin: tokens, Shapiro and DM Mono, Ink and white grounds, no cards or glows, labels in the margin, Record line, casing line, V4 motion. (Done, 0.2.0.)
 3. The fun layer: the per-grid triad band, the log-style wait, the new share card, the resting message when the free tier runs out. (Done, 0.2.0.)
-4. Integration: `/lab/emoujia` on the new site by rewrite, canonical URL and JSON-LD, a Lab Note, the Register row.
+4. Integration: `/lab/emoujia` on the new site by rewrite, canonical URL and JSON-LD, a Lab Note, the Register row. Emoujia's side built in 0.3.0 (20 Nov 2026): the embed, the fallback reading, signed email, caps, the redirect prepared and off, `docs/INTEGRATION.md`. On a deploy preview, waiting on Japhy's decisions. The site's side (rewrites, the mount, the page's own words) is the site developer's, from INTEGRATION.md.
 
 ## For Japhy to do in consoles
 

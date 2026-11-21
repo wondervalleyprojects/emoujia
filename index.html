@@ -6,21 +6,54 @@
     <title>Emoujia · A Wonder Valley Projects Lab</title>
     <meta name="description" content="What do your emojis say about you? Emoujia reads your Frequently Used emoji. Read by a machine, kept by no one. A Wonder Valley Projects Lab.">
     <link rel="icon" href="/wvp-bug.svg" type="image/svg+xml">
-    <link rel="preload" href="/fonts/DMMono-400.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/DMMono-500.woff2" as="font" type="font/woff2" crossorigin>
     <meta name="theme-color" content="#0A0E2A">
+    <script type="module" src="/src/standalone.ts"></script>
   </head>
   <body>
-    <div id="root"></div>
-    <noscript>
-      <main style="max-width:36rem;margin:4rem auto;padding:0 1.5rem;font-family:system-ui,sans-serif;line-height:1.5">
-        <h1>Emoujia</h1>
-        <p>What do your emojis say about you? Screenshot the Frequently Used section of your emoji keyboard and a machine reads it, the way a palmist reads a hand.</p>
-        <p>Read by a machine, kept by no one. We do not store your screenshot or your reading. Your screenshot is read by Google's Gemini, which may use it to improve its models.</p>
-        <p>Reading a screenshot needs JavaScript. Turn it on to get your reading.</p>
-        <p><a href="https://wondervalleyprojects.com">A Wonder Valley Projects Lab</a></p>
+    <!-- emoujia.com is a host page for the embed, like the studio site: it
+         supplies the header, the heading, the light and the footer. -->
+    <div class="page">
+      <header class="site-header">
+        <a class="name" href="https://wondervalleyprojects.com">
+          <img src="/wvp-bug.svg" width="40" height="40" alt="">
+          <span>Wonder Valley Projects</span>
+        </a>
+        <nav aria-label="Where you are">Lab</nav>
+      </header>
+      <main>
+        <div class="masthead">
+          <p class="label">Wonder Valley Projects Lab</p>
+          <p class="label">Emoujia</p>
+          <p class="label">Read by a machine<br>Kept by no&nbsp;one</p>
+        </div>
+        <h1 class="hero-title">What do your emojis say about&nbsp;you?</h1>
+        <p class="lede">
+          Emoujia reads the Frequently Used section of your emoji keyboard the way a palmist reads a hand.
+          Atmospheric, psychologically acute, slightly&nbsp;unnerving.
+        </p>
+        <noscript>
+          <p class="lede">Read by a machine, kept by no one. We do not store your screenshot or your reading. Your screenshot is read by Google's Gemini, which may use it to improve its models.</p>
+          <p class="lede">Reading a screenshot needs JavaScript. Turn it on to get your reading.</p>
+        </noscript>
+        <div data-emoujia data-api="/api" data-css="/embed/emoujia.css"></div>
       </main>
-    </noscript>
-    <script type="module" src="/src/main.tsx"></script>
+      <footer class="site-footer">
+        <a class="sign" href="https://wondervalleyprojects.com">
+          <img src="/wvp-bug.svg" width="40" height="40" alt="">
+          <span class="label">A Wonder Valley Projects Lab</span>
+        </a>
+        <div class="links">
+          <a href="https://wondervalleyprojects.com">About</a>
+          <a href="mailto:emoujia@wondervalleyprojects.com?subject=Remove%20me&amp;body=Please%20remove%20this%20email%20address%20from%20Emoujia.">Remove me</a>
+          <a href="#privacy">Privacy</a>
+          <span class="light" role="group" aria-label="Light">
+            <button type="button" data-light-choice="auto" hidden>Auto</button>
+            <button type="button" data-light-choice="day" hidden>Day</button>
+            <button type="button" data-light-choice="night" hidden>Night</button>
+          </span>
+        </div>
+      </footer>
+    </div>
   </body>
 </html>
-

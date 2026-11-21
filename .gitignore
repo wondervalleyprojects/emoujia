@@ -9,3 +9,8 @@ dist/
 # Shapiro is licensed (MyFonts webfont license) and this repo is public:
 # never commit the font files. Drop them here locally or at deploy time.
 public/fonts/shapiro/
+
+# Screenshots and results for scripts/model-test.ts. Never committed.
+model-test/
+# Local preview settings (point at a scratch path on one machine).
+.claude/launch.json

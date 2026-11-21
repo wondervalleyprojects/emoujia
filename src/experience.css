@@ -1,0 +1,128 @@
+/* Emoujia, the experience. Served as /embed/emoujia.css and loaded inside the
+   mount's shadow root, so nothing here reaches the host page and the host's
+   own rules cannot reach in. The host's Public Wonder tokens do come through:
+   custom properties and fonts cross the shadow boundary. Every token has a
+   fallback so the embed still reads on a page without them.
+
+   Names are the site's (public-wonder tokens 2027.5 as the studio site ships
+   them). The standalone page defines the same names in src/standalone.css. */
+
+:host { display: block; }
+/* A host rule aimed at the mount element itself beats :host, and its font or
+   color would be inherited inside. So the reset lives one level in, on the
+   experience's own root: `all: initial` stops every inherited property here.
+   Custom properties are not reset by `all`, so the host's tokens still arrive. */
+.emoujia {
+  all: initial;
+  display: block;
+  container-type: inline-size;
+  color: var(--pw-role-text, #0A0E2A);
+  font-family: var(--pw-font-text, "Shapiro Text", Arial, sans-serif);
+  font-size: var(--pw-type-body, 18px);
+  line-height: var(--pw-type-body-lh, 1.5);
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+.emoujia[hidden] { display: none; }
+img, svg, canvas { display: block; max-width: 100%; }
+button, input { font: inherit; color: inherit; }
+ol, ul { list-style: none; }
+a { color: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+:focus-visible { outline: 2px solid var(--pw-role-focus, currentColor); outline-offset: 3px; }
+[tabindex="-1"]:focus { outline: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Labels: Shapiro Wide, spaced caps. Never mono. */
+.label { font-family: var(--pw-font-label, "Shapiro Wide", Arial, sans-serif); font-weight: 400; font-size: var(--pw-type-label, 12px); line-height: 1.4; letter-spacing: var(--pw-type-label-tracking, 0.12em); text-transform: uppercase; color: var(--pw-role-muted, #3B4266); }
+
+/* Labels live in the margin on wide mounts. */
+.row { display: grid; gap: 8px 32px; padding: var(--pw-space-4, 32px) 0; }
+.row + .row { border-top: 1px solid var(--pw-role-rule, #D5D9E8); }
+@container (min-width: 720px) { .row { grid-template-columns: 184px minmax(0, 1fr); } }
+
+.small { font-size: 15px; }
+.muted { color: var(--pw-role-muted, #3B4266); }
+.measure { max-width: 36em; }
+.stack { display: grid; gap: var(--pw-space-2, 16px); justify-items: start; }
+.stack-tight { display: grid; gap: var(--pw-space-1, 8px); justify-items: start; }
+
+/* The invitation bracket: a real button, in the accent, that opens on reach. */
+.bracket { font-family: var(--pw-font-mono, "DM Mono", monospace); font-weight: 500; font-size: 22px; letter-spacing: 0.04em; color: var(--pw-role-accent, #D11E50); background: none; border: 0; padding: 12px 0; min-height: var(--pw-tap-min, 44px); cursor: pointer; text-transform: uppercase; }
+.bracket span { display: inline-block; border-bottom: var(--pw-sheet-bracket-underline, 3px) solid transparent; transition: padding var(--pw-motion-tactile, 150ms) var(--pw-motion-ease, ease), border-color var(--pw-motion-tactile, 150ms) var(--pw-motion-ease, ease); }
+.bracket:hover span, .bracket:focus-visible span { padding: 0 var(--pw-sheet-bracket-open, 6px); border-bottom-color: currentColor; }
+
+/* Buttons: outlined; a tint on hover; the arrow nudges; press settles. Never solid. */
+.btn { display: inline-flex; align-items: center; gap: 12px; min-height: var(--pw-tap-min, 44px); padding: 10px 20px; border: 2px solid var(--pw-role-text, #0A0E2A); border-radius: 0; background: transparent; color: var(--pw-role-text, #0A0E2A); font-family: var(--pw-font-display, "Shapiro", Arial, sans-serif); font-weight: 400; font-size: 16px; line-height: 1.2; cursor: pointer; text-decoration: none; transition: background var(--pw-motion-tactile, 150ms) var(--pw-motion-ease, ease), transform var(--pw-motion-snap, 80ms) var(--pw-motion-ease, ease); }
+.btn:hover { background: color-mix(in srgb, var(--pw-role-text, #0A0E2A) 10%, transparent); }
+.btn:active { transform: translateY(1px); }
+.btn .arrow { display: inline-block; transition: transform var(--pw-motion-tactile, 150ms) var(--pw-motion-ease, ease); }
+.btn:hover .arrow { transform: translateX(var(--pw-sheet-arrow-nudge, 4px)); }
+.btn[aria-disabled="true"] { opacity: 0.5; cursor: default; }
+.btn[aria-disabled="true"]:hover { background: transparent; }
+.btn[aria-disabled="true"]:hover .arrow { transform: none; }
+.textlink { display: inline-flex; align-items: center; background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; min-height: var(--pw-tap-min, 44px); text-align: left; }
+
+/* The three steps. */
+.steps { list-style: decimal; padding-left: 1.2em; display: grid; gap: 4px; }
+
+/* The fallback: one plain field for three emoji from the person's own keyboard. */
+.field { display: block; width: 100%; max-width: 28rem; min-height: var(--pw-tap-min, 44px); padding: 10px 12px; border: 2px solid var(--pw-role-text, #0A0E2A); border-radius: 0; background: transparent; color: var(--pw-role-text, #0A0E2A); font-family: var(--pw-font-text, "Shapiro Text", Arial, sans-serif); font-size: 18px; }
+.field.three { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", var(--pw-font-text, Arial), sans-serif; font-size: 28px; letter-spacing: 0.1em; max-width: 14rem; }
+.check { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
+.check input { appearance: none; -webkit-appearance: none; width: 22px; height: 22px; flex: none; margin-top: 3px; border: 2px solid var(--pw-role-text, #0A0E2A); border-radius: 0; background: transparent; cursor: pointer; }
+.check input:checked { background: var(--pw-role-text, #0A0E2A); box-shadow: inset 0 0 0 3px var(--pw-role-ground, #FFFFFF); }
+/* The whole label is the target, at least 44px tall. */
+.check { min-height: var(--pw-tap-min, 44px); padding: 10px 0; }
+
+/* Crop. The shade is four plain fields around the box: no shadows. */
+.crop-frame { position: relative; display: inline-block; line-height: 0; touch-action: none; user-select: none; -webkit-user-select: none; background: var(--pw-color-ink, #0A0E2A); }
+.crop-frame img { max-width: 100%; max-height: 70vh; width: auto; height: auto; -webkit-user-drag: none; pointer-events: none; }
+.crop-shade { position: absolute; background: rgba(10, 14, 42, 0.66); pointer-events: none; }
+.crop-box { position: absolute; border: 2px solid var(--pw-color-white, #FFFFFF); outline: 1px solid var(--pw-color-ink, #0A0E2A); cursor: move; touch-action: none; }
+.crop-box:focus-visible { outline: 3px solid var(--pw-color-signal, #FA3A6B); outline-offset: 0; }
+/* Each corner is a 44px target with a small visible square. */
+.crop-handle { position: absolute; width: var(--pw-tap-min, 44px); height: var(--pw-tap-min, 44px); touch-action: none; }
+.crop-handle::after { content: ""; position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; background: var(--pw-color-white, #FFFFFF); border: 2px solid var(--pw-color-ink, #0A0E2A); }
+.crop-handle.nw { left: -22px; top: -22px; cursor: nwse-resize; }
+.crop-handle.ne { right: -22px; top: -22px; cursor: nesw-resize; }
+.crop-handle.sw { left: -22px; bottom: -22px; cursor: nesw-resize; }
+.crop-handle.se { right: -22px; bottom: -22px; cursor: nwse-resize; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center; }
+
+/* Machine words: DM Mono, marked as the machine's own. */
+.machine { font-family: var(--pw-font-mono, "DM Mono", monospace); font-size: 17px; line-height: 1.65; max-width: 62ch; overflow-wrap: anywhere; }
+.machine p + p { margin-top: 1em; }
+.casing { font-family: var(--pw-font-mono, "DM Mono", monospace); font-size: var(--pw-record-web-min, 13px); letter-spacing: 0.04em; color: var(--pw-role-muted, #3B4266); }
+
+.emoji { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
+.ruling { font-size: clamp(144px, 28cqi, 280px); line-height: 1; }
+.essence { font-family: var(--pw-font-display, "Shapiro", Arial, sans-serif); font-weight: 400; font-size: clamp(28px, 4.4cqi, 40px); line-height: 1.12; max-width: 20ch; overflow-wrap: anywhere; }
+.essence.large { max-width: 22ch; }
+.grid-emoji { font-size: 32px; line-height: 1.4; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+
+/* The reading's own masthead strip: a rule, then who, what, when. */
+.masthead { border-top: var(--pw-rule-thin, 2px) solid var(--pw-role-text, #0A0E2A); padding-top: 16px; margin-top: 32px; display: grid; grid-template-columns: 1fr; gap: 4px; }
+.masthead .label:first-child { color: var(--pw-role-text, #0A0E2A); }
+@container (min-width: 600px) { .masthead { grid-template-columns: repeat(3, 1fr); gap: 16px; } .masthead .label:last-child { text-align: right; } }
+
+/* The band: a field on an ink plate. Text stays off it. Always Lab night. */
+.band { background: var(--pw-color-ink, #0A0E2A); width: 100%; height: auto; }
+.band .trace { stroke-dasharray: var(--len); stroke-dashoffset: var(--len); animation: plot var(--pw-motion-plot, 1200ms) var(--pw-motion-pen, linear) forwards; }
+@keyframes plot { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .band .trace { animation: none; stroke-dashoffset: 0; } * { transition: none !important; } }
+
+.log { font-family: var(--pw-font-mono, "DM Mono", monospace); font-size: 16px; line-height: 1.9; }
+.log li::before { content: "> "; color: var(--pw-role-accent, #D11E50); }
+
+.card-preview { width: 100%; max-width: 540px; height: auto; border: 1px solid var(--pw-role-rule, #D5D9E8); }
+
+/* The Record line. Under 480px of mount, one field per row. */
+.record { font-family: var(--pw-font-mono, "DM Mono", monospace); font-size: var(--pw-record-web, 15px); letter-spacing: 0.04em; color: var(--pw-role-muted, #3B4266); padding: 16px 0; border-top: 1px solid var(--pw-role-rule, #D5D9E8); }
+@container (max-width: 479px) { .record .sep { display: none; } .record .field-part { display: block; } }
+
+/* Drop a screenshot onto the mount. */
+.emoujia.dropping { outline: 2px dashed var(--pw-role-accent, #D11E50); outline-offset: 8px; }
+.block { display: block; }

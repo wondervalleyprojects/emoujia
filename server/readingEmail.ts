@@ -3,13 +3,20 @@
 // share card travels as an attachment.
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-export function buildReadingEmail(bodyText: string, essence: string, appUrl: string) {
+// PROPOSED (20 Nov 2026): the first line says which reading this is.
+const OPENING = {
+  grid: 'Here is your Emoujia reading.',
+  three: 'Here is your Emoujia reading, from the three emoji you gave. A screenshot of your keyboard gets the full one.',
+};
+
+export function buildReadingEmail(bodyText: string, essence: string, appUrl: string, kind: 'grid' | 'three' = 'grid') {
+  const opening = OPENING[kind] || OPENING.grid;
   const signoff = [
     'Your reading was sent and not kept.',
     'Sent by a machine for the Wonder Valley Projects Lab. Reviewed by a person: no. Replies reach a person.',
   ];
   const text = [
-    'Here is your Emoujia reading.',
+    opening,
     bodyText,
     essence ? `The essence: ${essence}` : '',
     `Read another: ${appUrl}`,
@@ -20,7 +27,7 @@ export function buildReadingEmail(bodyText: string, essence: string, appUrl: str
   const paras = bodyText.split(/\n+/).map((p) => p.trim()).filter(Boolean)
     .map((p) => (/^[A-Z ]+$/.test(p) ? `<p><b>${esc(p)}</b></p>` : `<p>${esc(p)}</p>`)).join('\n');
   const html = `<div>
-<p>Here is your Emoujia reading.</p>
+<p>${esc(opening)}</p>
 ${paras}
 ${essence ? `<p><b>The essence:</b> ${esc(essence)}</p>` : ''}
 <p><a href="${appUrl}">Read another</a></p>

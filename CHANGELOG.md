@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.3.0, 20 Nov 2026: ready to live inside the studio site (deploy preview; not live)
+
+- **The embed.** The whole experience is one script and one stylesheet at fixed addresses (`/embed/emoujia.js`, `/embed/emoujia.css`, five-minute cache), mounted into one element the host gives, inside a shadow root. No header, footer, masthead, light switch or title of its own. It reads where its API lives from the element. It takes the host's Public Wonder tokens, type and light. emoujia.com is now a host page for the same embed. Contract: `docs/INTEGRATION.md`.
+- **Site token names.** Font families and token names follow the studio site (V5), which won every difference. The list is in DESIGN.md.
+- **Crop before sending.** The screenshot can be cropped to the keyboard in the browser; only the cropped part is sent.
+- **The three-emoji reading** for people who cannot bring a screenshot: `POST /api/read-three`, one plain field, three emoji from the person's own keyboard. The server refuses anything else before the model is called. Shorter, and says so. Built into deploy previews only until its voice and notice are approved.
+- **One place for the prompts and the routes.** `server/prompts.ts` (the grid prompt moved unchanged) and `server/api.ts`, shared by both servers.
+- **The casing line names the model Google says answered**, not the one asked for. Google retires gemini-2.5-flash on 1 Dec 2026.
+- **Signed readings.** The email route sends only readings this server made, unchanged, in the last 24 hours, and takes the essence from the signed text. The card must be a small JPEG. Nothing is stored.
+- **Per-visitor caps** at Netlify's edge: 10 requests a minute, 3 emails in 3 minutes. A new "One at a time" message when they are hit.
+- **Errors say what happened**: every route answers `{ error, code }`. A spent allowance is now a 429 `resting` for both readings, not a guessed-at 500.
+- **The emoujia.com redirect**, prepared and off (`EMOUJIA_COM_REDIRECT`, OPERATIONS.md).
+- **Subscribe label** proposed: "Tell me about new labs. It comes from Japhy Grant's Substack, a few times a year, along with his other writing." Same Firestore and CSV path as before.
+- **How-to steps promise iPhone only** until an Android keyboard is tested.
+- **Security:** the Gemini key is no longer wired into the browser build config; SMTP no longer skips certificate checks; the dev server logs paths, never bodies.
+- **Removed:** Tailwind (only its reset was used), the old single-page App.
+- **Tools:** `scripts/model-test.ts` (scores Gemini models on real screenshots), `stub/` (a host page imitating the studio site, deploy previews only).
+- **Docs:** INTEGRATION (new), ARCHITECTURE, DESIGN, OPERATIONS, PRIVACY. PRIVACY now says the studio's Gmail keeps a copy of every emailed reading in Sent Mail.
+- **Waiting on Japhy:** the fallback prompt's voice and three sample readings; the model list; free or paid tier, then both notices; the share card line that replaces "KEPT BY NO ONE"; the proposed lines marked PROPOSED in the code.
+
 ## 0.2.0, 1 Nov 2026: the Lab look
 
 - Public Wonder, Lab face: Ink and white grounds, Auto, Day and Night light, tokens by their canonical names.
