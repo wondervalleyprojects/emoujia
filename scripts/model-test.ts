@@ -30,7 +30,7 @@ if (!key) { console.error('Set GEMINI_API_KEY in .env first.'); process.exit(1);
 const expectedFile = join(dir, 'expected.json');
 if (!existsSync(expectedFile)) { console.error(`Missing ${expectedFile}. See the top of this file.`); process.exit(1); }
 const expected: Record<string, string> = JSON.parse(readFileSync(expectedFile, 'utf8'));
-const shots = readdirSync(dir).filter((f) => /\.(png|jpe?g|webp|heic)$/i.test(f) && expected[f]);
+const shots = readdirSync(dir).filter((f) => /\.(png|jpe?g|webp|heic)$/i.test(f) && expected[f]).sort();
 if (!shots.length) { console.error('No screenshot in the folder has a line in expected.json.'); process.exit(1); }
 
 const ai = new GoogleGenAI({ apiKey: key });
@@ -41,7 +41,7 @@ const models: string[] = [];
 for await (const m of await ai.models.list()) {
   const name = (m.name || '').replace(/^models\//, '');
   const actions: string[] = (m as any).supportedActions || [];
-  if (/^gemini-/.test(name) && actions.includes('generateContent') && !/embedding|tts|image-generation|live|audio|transcribe|translate/i.test(name)) models.push(name);
+  if (/^gemini-/.test(name) && actions.includes('generateContent') && !/embedding|tts|image|banana|robotics|computer-use|customtools|live|audio|transcribe|translate/i.test(name)) models.push(name);
 }
 const only = (process.env.ONLY || '').split(',').map((s) => s.trim()).filter(Boolean);
 const list = only.length ? models.filter((m) => only.includes(m)) : models;
@@ -56,7 +56,10 @@ function asBrowserSends(file: string): string {
 }
 
 // Scores: slots in the right place, emoji found anywhere, emoji invented.
-function score(want: string[], got: string[]) {
+// The emoji selector (U+FE0F) is invisible and keyboards differ on it, so it is not counted.
+const bare = (e: string) => e.replace(/\uFE0F/g, '');
+function score(wantIn: string[], gotIn: string[]) {
+  const want = wantIn.map(bare), got = gotIn.map(bare);
   const inPlace = want.filter((e, i) => got[i] === e).length;
   const pool = [...got]; let found = 0;
   for (const e of want) { const i = pool.indexOf(e); if (i >= 0) { found++; pool.splice(i, 1); } }
@@ -86,7 +89,10 @@ for (const model of list) {
 }
 
 // One fallback reading per model, for its token counts.
-const three: [string, string, string] = ['🔥', '🫠', '🐈‍⬛'];
+// THREE: the three emoji to send, from the person running the test (their own data only).
+const typed = splitEmoji([process.env.THREE || '']);
+if (typed.length !== 3) { console.log('\nSet THREE to three emoji to measure the fallback reading. Skipped.'); writeFileSync(join(dir, 'results.json'), JSON.stringify(results, null, 2)); process.exit(0); }
+const three = typed as [string, string, string];
 for (const model of list) {
   try {
     const t0 = Date.now();
