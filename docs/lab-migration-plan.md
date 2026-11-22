@@ -28,7 +28,7 @@ Working plan for moving Emoujia into Public Wonder as a Lab. Status: DRAFT until
 ## Open items
 
 - **Android.** No Android screenshot has been tested (21 Nov 2026), so the how-to promises iPhone only and sends everyone else to the three-emoji reading. To close: one Gboard screenshot (and Samsung's keyboard if possible) with the emoji confirmed, run through `scripts/model-test.ts`; then the how-to can name Android.
-- **The reading email and "The studio keeps no readings".** A reading someone asks to have emailed stays in the studio's Gmail Sent Mail until deleted (PRIVACY.md). The share card line and the "What we keep" text need either that copy deleted as a routine, or words that allow for it. [JAPHY]
+- **The reading email and "The studio keeps no readings".** A reading someone asks to have emailed stays in the studio's Gmail Sent Mail until deleted (PRIVACY.md). The share card line and the "What we keep" text need either that copy deleted as a routine, or words that allow for it. Decided 21 Nov 2026 (Japhy): deleted as a routine, daily (`scripts/gmail-clear-sent.gs`), and the notices name the limit, up to a day. Whether the share card line "The studio keeps no readings" stands as is: [JAPHY].
 - **Anthropic's own workspace and limit** before production (OPERATIONS.md, Launch day).
 
 ## For Japhy to do in consoles

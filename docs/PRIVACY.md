@@ -55,12 +55,12 @@ Japhy chose Claude Sonnet 5.5 as the only reading model on 21 Nov 2026. With the
 
 The Google free terms are why the page said: "Your screenshot is read by Google's Gemini, which may use it to improve its models. We keep nothing." That disclosure is a logged exception (EMJ-001 Notes, allowed by Japhy Grant on 1 Nov 2026, review 1 May 2027). "We keep nothing" was retired by Public Wonder V5 (PW-V5-05). With Claude alone, nothing is offered for training. Japhy closed the exception on 21 Nov 2026 (draft Register note: `docs/EMJ-001_Register-note_DRAFT.md`; decision record: `docs/adr/ADR-001.md`). The replacement notices:
 
-- Screenshot reading (PROPOSED; revised at Japhy's word, 21 Nov 2026): "The part of the screenshot you send is read by Anthropic's Claude. Anthropic does not train its models on it. It keeps it for up to 30 days, may look at it in that time for safety, and keeps it longer only if its checks flag it: Anthropic's retention page [linked]. The studio stores neither the screenshot nor the reading."
+- Screenshot reading (PROPOSED; revised at Japhy's word, 21 Nov 2026; last two sentences PROPOSED the same day, from his decision to clear Sent Mail daily): "The part of the screenshot you send is read by Anthropic's Claude. Anthropic does not train its models on it. It keeps it for up to 30 days, may look at it in that time for safety, and keeps it longer only if its checks flag it: Anthropic's retention page [linked]. The studio does not store the screenshot. If you ask for the reading by email, a copy of that email, with your address, stays in the studio's Gmail for up to a day, then is deleted."
 - Three-emoji reading (PROPOSED): "Only the three emoji are sent. They are read by Anthropic's Claude, on the same terms as a screenshot."
 
 ## The reading
 
-The reading lives only in your browser tab. Close the tab and it is gone from Emoujia.
+The reading lives only in your browser tab. Close the tab and it is gone from Emoujia, unless you asked for the email: then a copy of that email stays in the studio's Gmail for up to a day (below).
 
 **Signed, not stored.** When the server makes a reading it signs it: a code made from the reading's kind, its emoji, its text and the time, with a secret only the server holds. The signature travels with the reading in your browser. The studio keeps no copy and no list. The email route checks the signature, so it can send only readings this server made, unchanged, in the last 24 hours. A signature cannot stop the same reading being emailed more than once in those 24 hours, because that would mean keeping a list.
 
@@ -71,7 +71,8 @@ The share card is drawn in your browser. It is not uploaded unless you ask for t
 If you type your address and ask for the email:
 
 - The signed reading, your address and the share card go to `{api}/send-reading`. The server checks the signature, takes the essence from the signed text, and sends one email through the studio's Gmail account.
-- **Gmail keeps a copy.** Every message sent through Gmail's servers is filed in the sending account's Sent Mail. So each emailed reading, with the address it went to and the card, stays in the studio's Gmail until someone deletes it. [CONFIRM ON THE PREVIEW: look in the sending account's Sent Mail after a test email]. Earlier versions of this file said nothing about the reading is stored; that was not true of the sent email.
+- **Gmail keeps a copy, for up to a day.** Every message sent through Gmail's servers is filed in the sending account's Sent Mail, with the address it went to and the card. Japhy decided on 21 Nov 2026 that these copies are cleared daily. A script in the sending account (`scripts/gmail-clear-sent.gs`, installed as in OPERATIONS) runs every hour and permanently deletes each reading email once it is 23 hours old, so none stays a full day. It deletes, not trashes: Trash would keep it 30 more days. It touches only messages whose subject is exactly "Your Emoujia reading" and whose sender is "Emoujia, a Wonder Valley Projects Lab" at that account; replies to visitors and the subscriber export are left alone. Public notice (PROPOSED): "If you ask for the reading by email, a copy of that email, with your address, stays in the studio's Gmail for up to a day, then is deleted." [CONFIRM ON THE PREVIEW: a test email appears in Sent Mail, and is gone a day later] Earlier versions of this file said nothing about the reading is stored; that was not true of the sent email.
+- If you checked the box, your address is also saved to the subscriber list (below). That is separate from the email copy.
 - Replies go to emoujia@wondervalleyprojects.com, which reaches a person.
 
 ## The subscriber list

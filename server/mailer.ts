@@ -3,7 +3,9 @@
 //
 // Fact for the notice: Gmail files a copy of every message sent through its
 // SMTP servers in the sending account's Sent Mail. So each reading emailed is
-// kept there, with the address and the card, until someone deletes it.
+// kept there, with the address and the card, until it is deleted. From 21 Nov
+// 2026, scripts/gmail-clear-sent.gs (installed in that account) deletes each
+// one for good within a day; the notices say so.
 import nodemailer from 'nodemailer';
 
 const transports = (user: string, pass: string) => [

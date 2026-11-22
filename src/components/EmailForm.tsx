@@ -64,10 +64,11 @@ export default function EmailForm({ onSend }: Props) {
       <input id="emoujia-email" className="field" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
       <label className="check small">
         <input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} />
-        {/* PROPOSED label (Japhy, 20 Nov 2026), to approve or replace. It must say exactly what happens to the address. */}
+        {/* PROPOSED label (Japhy, 20 Nov 2026), to approve or replace. It must say exactly what happens to the address.
+            Second line's last sentence PROPOSED, 21 Nov 2026 (Sent Mail cleared daily). */}
         <span>
           Tell me about new labs. It comes from Japhy Grant's Substack, a few times a year, along with his other&nbsp;writing.
-          <span className="muted block">We keep your email only if you check this. [WHAT HAPPENS TO THE READING EMAIL: FROM THE NOTICE]</span>
+          <span className="muted block">We keep your email only if you check this. Otherwise it goes when the studio's copy of this email is deleted, within a&nbsp;day.</span>
         </span>
       </label>
       <div>

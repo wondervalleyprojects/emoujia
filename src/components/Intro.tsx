@@ -32,12 +32,16 @@ export default function Intro({ onFile, onThree, notice, threeNotice, fallback, 
           <p className="small muted">Or drop the screenshot&nbsp;here.</p>
           {notice && <p className="small" role="alert">{notice}</p>}
           {/* PROPOSED, 21 Nov 2026, from the model Japhy chose: Claude Sonnet only.
+              Last two sentences PROPOSED, 21 Nov 2026, from Japhy's decision that reading
+              emails in Sent Mail are cleared daily (scripts/gmail-clear-sent.gs).
+              The studio site copies this notice word for word; change both together.
               Facts and sources: docs/PRIVACY.md. */}
           <p className="small muted measure" id="privacy">
             The part of the screenshot you send is read by Anthropic's Claude. Anthropic does not train its models on it.
             It keeps it for up to 30 days, may look at it in that time for safety, and keeps it longer only if its checks
             flag it: <a className="textlink" href="https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-my-organization-s-data" rel="noopener noreferrer">Anthropic's retention page</a>.
-            The studio stores neither the screenshot nor the&nbsp;reading.
+            The studio does not store the screenshot. If you ask for the reading by email, a copy of that email, with your
+            address, stays in the studio's Gmail for up to a day, then is&nbsp;deleted.
           </p>
         </div>
       </section>
@@ -74,9 +78,11 @@ export default function Intro({ onFile, onThree, notice, threeNotice, fallback, 
 
       <section className="row" aria-labelledby="emoujia-keep">
         <h2 className="label" id="emoujia-keep">What we keep</h2>
+        {/* PROPOSED, 21 Nov 2026: Sent Mail copies are cleared daily (scripts/gmail-clear-sent.gs). */}
         <p className="small measure">
-          Nothing about your reading. If you ask, we email it to you. Your email address is kept only if you check the box under
-          the email field, and you can ask us to remove it any&nbsp;time. [WHAT WE KEEP: AFTER THE SENT MAIL CHECK ON THE PREVIEW]
+          Your reading stays in this tab. If you ask, we email it to you, and a copy of that email, with your address and the card,
+          stays in the studio's Gmail for up to a day, then is deleted. Your address is kept longer only if you check the box under
+          the email field, and you can ask us to remove it any&nbsp;time.
         </p>
       </section>
     </>

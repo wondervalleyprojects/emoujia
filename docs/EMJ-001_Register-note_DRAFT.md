@@ -10,7 +10,7 @@ The exception logged on 1 Nov 2026 allowed Emoujia to send screenshots to Google
 
 Closed by Japhy Grant on 21 Nov 2026. From the 0.3.0 release, Emoujia's readings are made by Anthropic's Claude Sonnet 5.5 on a paid key, and by no other model. Anthropic's Commercial Terms (effective 17 June 2025) say it may not train its models on what is sent. Nothing a participant sends is offered for training.
 
-What remains true and is said on the page: the screenshot, or the three emoji, goes to Anthropic; Anthropic keeps it for up to 30 days, may look at it in that time for safety, and keeps it longer only if its checks flag it. The studio stores neither the screenshot nor the reading.
+What remains true and is said on the page: the screenshot, or the three emoji, goes to Anthropic; Anthropic keeps it for up to 30 days, may look at it in that time for safety, and keeps it longer only if its checks flag it. The studio does not store the screenshot. If you ask for the reading by email, a copy of that email, with your address, stays in the studio's Gmail for up to a day, then is deleted. [PROPOSED, 21 Nov 2026]
 
 Cost: about 1.4 cents a screenshot reading, within $10 every three months. When the limit is reached the oracle rests.
 

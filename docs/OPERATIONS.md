@@ -80,7 +80,31 @@ The footer's "Remove me" opens an email to emoujia@wondervalleyprojects.com. Del
 | "Your address could not be saved for news of new labs" under "Sent" | The subscriber save failed or took over 2 seconds; the reading still went | Netlify, Logs, Functions, `api`: the `[db] subscriber save failed` line gives the reason. `NOT_FOUND` means `FIREBASE_DATABASE_ID` is wrong; "FIREBASE_DATABASE_ID is not set" means it is missing. Fix it, redeploy, and check one checked box reaches Firestore. |
 | Email never arrives | Gmail app password revoked, or the account's sending limit | Netlify function logs show the SMTP error. Make a new app password. |
 | Export email missing | Service account not set | See Subscriber export. |
+| Reading emails older than a day in Sent Mail | The clearing script is not installed, its trigger was removed, or its authorization lapsed | script.google.com, the project, Executions: look for errors. Run `clearReadingEmails` by hand; check Triggers shows the hourly one. See "Clearing reading emails from Sent Mail". |
 | Headlines look like Barlow | Fonts not fetched | Check `FONTS_REPO`, `FONTS_TOKEN` and the build log. |
+
+## Clearing reading emails from Sent Mail
+
+Gmail files a copy of every reading email in the sending account's Sent Mail, with the visitor's address and the card. Japhy decided on 21 Nov 2026 that these copies are cleared daily, and the notices say a copy stays "for up to a day, then is deleted". `scripts/gmail-clear-sent.gs` keeps that promise. It runs every hour and permanently deletes each reading email once it is 23 hours old, so none stays a full day. (A once-a-day run would leave a copy sent just after it for almost two days.)
+
+It deletes for good through the Gmail advanced service. Moving to Trash is not enough: Gmail keeps Trash 30 days.
+
+It touches only messages that carry the SENT label, have the subject exactly "Your Emoujia reading", and come from "Emoujia, a Wonder Valley Projects Lab" at the account it runs in. Replies to visitors ("Re: ..."), forwards, the subscriber CSV export and everything else are left alone. Its log holds counts, dates and message ids, never an address. If the reading email's subject (`server/readingEmail.ts`) or the From name (`server/api.ts`) ever changes, change `SUBJECT`, `FROM_NAME` and `QUERY` at the top of the script the same day.
+
+**Install** (once, signed in to Google as the sending account, `GMAIL_USER`):
+
+1. Go to script.google.com, New project. Name it "Emoujia: clear Sent Mail".
+2. Delete the sample code. Paste the whole of `scripts/gmail-clear-sent.gs`. Save.
+3. Left side, Services (+), choose **Gmail API**, keep the identifier `Gmail`, Add.
+4. Check the top of the script reads `const DRY_RUN = true;`.
+5. Choose `clearReadingEmails` in the function menu, Run. Google asks for authorization: Review permissions, choose the sending account. It warns that the app is unverified, since it is your own script: Advanced, Go to "Emoujia: clear Sent Mail", Allow. It asks for full Gmail access, which permanent deletion needs.
+6. Read the Execution log. It lists each message it would delete, with its date, and a summary line. Compare with Sent Mail: search `in:sent subject:"Your Emoujia reading"`; every listed date should be a reading email over 23 hours old, and nothing else.
+7. When it looks right, change the line to `const DRY_RUN = false;`, Save, Run once more. The summary says how many it deleted. Check Sent Mail and Trash: those copies are in neither.
+8. Left side, Triggers (clock), Add Trigger: function `clearReadingEmails`, deployment Head, event source Time-driven, type Hour timer, Every hour. Failure notifications: Notify me daily. Save.
+
+**Check now and then:** Executions shows a run each hour without errors. If Google asks to authorize again (after a password change, for example), run it once by hand.
+
+Not included: clearing the subscriber CSV export emails (`Emoujia subscribers, <date>`) once imported to Substack. [JAPHY: INCLUDE THE EXPORT EMAILS TOO?]
 
 ## Subscriber saves failing, 21 Nov 2026
 
@@ -106,7 +130,8 @@ In this order, on the day the new wondervalleyprojects.com reaches production:
 3. Correct `FIREBASE_DATABASE_ID` in Netlify (all contexts) to `ai-studio-ba8645f8-a857-4aaf-afb0-8024a7560e64`, the whole id. It reads one character short today.
 4. Set `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY` (scope Functions, marked secret; steps under "Subscriber export").
 5. Redeploy, then check one checked box on a reading: the page shows only "Sent", and the address is in Firestore under `subscribers` in that database.
-6. Turn on the emoujia.com redirect (next section).
+6. Install the Sent Mail clearing script in the sending Gmail account, dry run first, then the hourly trigger ("Clearing reading emails from Sent Mail", below). Before production: the notices promise each emailed copy is deleted within a day.
+7. Turn on the emoujia.com redirect (next section).
 
 ## The emoujia.com redirect
 
