@@ -7,18 +7,18 @@
 // reading mailed more than once inside that window (stopping that would mean
 // keeping a list, which we do not). The share card is drawn in the browser and
 // cannot be signed; the email route checks only that it is a small JPEG.
-import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 
 export type ReadingKind = 'grid' | 'three';
 export const SIGNATURE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 function secret(): string {
-  if (process.env.READING_SECRET) return process.env.READING_SECRET;
-  // Until READING_SECRET is set in Netlify, derive one from the Gemini key, so
-  // the deploy preview works. Changing either key voids readings already made.
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) throw new Error('No signing secret: set READING_SECRET or GEMINI_API_KEY.');
-  return createHash('sha256').update(`emoujia-reading-signature:${key}`).digest('hex');
+  // Required (Japhy, 21 Nov 2026). It is never derived from another key: a
+  // secret that signs readings should not change when the model key does.
+  // Changing it voids readings already on screen (they can no longer be emailed).
+  const s = process.env.READING_SECRET;
+  if (!s || s.length < 32) throw new Error('READING_SECRET is not set (or is shorter than 32 characters).');
+  return s;
 }
 
 function mac(kind: ReadingKind, issuedAt: number, emojis: string[], reading: string): string {

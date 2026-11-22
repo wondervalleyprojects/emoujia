@@ -5,8 +5,8 @@ One Netlify project with two builds (a standalone page and an embed) and two ser
 ```
 host page (emoujia.com, or wondervalleyprojects.com/lab/emoujia/ by rewrite)
   └─ <div data-emoujia data-api=… data-css=…>  ← /embed/emoujia.js mounts the experience in its shadow root
-       ├─ POST {api}/analyze ──────► netlify/functions/api.ts ─► Gemini   (screenshot, cropped in the browser)
-       ├─ POST {api}/read-three ───► netlify/functions/api.ts ─► Gemini   (three checked emoji, nothing else)
+       ├─ POST {api}/analyze ──────► netlify/functions/api.ts ─► Claude   (screenshot, cropped in the browser)
+       ├─ POST {api}/read-three ───► netlify/functions/api.ts ─► Claude   (three checked emoji, nothing else)
        └─ POST {api}/send-reading ─► netlify/functions/api.ts ─► Gmail (SMTP); Firestore only on opt-in
 GET /api/admin/export-subscribers (Bearer EXPORT_SECRET)
 netlify/functions/export-subscribers.mts (scheduled, 1st and 15th) ─► Firestore ─► CSV by email
@@ -20,7 +20,7 @@ netlify/functions/export-subscribers.mts (scheduled, 1st and 15th) ─► Firest
 | `Experience.tsx` | The views: invitation, crop, the waiting log, the reading, resting, too many, error. File handling, drop onto the mount, focus moved to each new view's heading, the share card, the email call. No header, footer, masthead or title of its own. |
 | `experience.css` | Every style of the experience, scoped by the shadow root. Site token names, each with a fallback. Shipped as written to `/embed/emoujia.css`. |
 | `standalone.ts`, `standalone.css` | emoujia.com as a host: fonts, tokens, the Auto, Day, Night switch, and the footer's Privacy link reaching into the mount. The page itself is plain HTML in `index.html`. |
-| `components/Intro.tsx` | The invitation bracket, the three steps (iPhone only for now), the notice, the no-screenshot line, what we keep. |
+| `components/Intro.tsx` | The invitation bracket, the three steps (iPhone only; everyone else is sent to the three-emoji reading), the notice, the no-screenshot line, what we keep. |
 | `components/Crop.tsx` | Crop the screenshot before it is sent: drag the box or a corner; arrow keys move it, Shift and arrow keys size it. |
 | `components/ThreeForm.tsx` | The fallback field: three emoji from the person's own keyboard, counted as they type. |
 | `components/Loading.tsx` | The waiting log. |
@@ -40,7 +40,7 @@ netlify/functions/export-subscribers.mts (scheduled, 1st and 15th) ─► Firest
 | --- | --- |
 | `server/api.ts` | Every route, once: `/analyze`, `/read-three`, `/send-reading`, `/admin/export-subscribers`. Body limits, the `{ error, code }` answers. Both servers mount it. |
 | `server/prompts.ts` | The grid prompt (moved here unchanged from the two servers) and the fallback prompt (PROPOSED). |
-| `server/readings.ts` | Calls Gemini, trying the models in `GEMINI_MODELS` in order; names the model from Google's answer; tells a spent allowance from other failures. |
+| `server/readings.ts` | Calls the model, trying those in `READING_MODELS` in order: `claude-*` at Anthropic, anything else at Google (Claude Sonnet alone by default). Names the model from the company's own answer; tells a spent allowance or spending limit from other failures. |
 | `server/sign.ts` | Signs each reading (HMAC) and checks the signature when it comes back to be emailed. Stores nothing. |
 | `server/mailer.ts` | Sends through Gmail, three ways, then without the card. |
 | `server/readingEmail.ts` | The reading email: plain, no styling, studio sign-off. |
@@ -66,5 +66,5 @@ Firestore holds one collection, `subscribers/{email}` with `email`, `subscribedA
 
 ## Tools
 
-- `scripts/model-test.ts`: scores every Gemini model the key can use on real screenshots (OPERATIONS.md).
+- `scripts/model-test.ts`: scores every Gemini model the key can use, and three Claude models when there is a key for them, on real screenshots (OPERATIONS.md).
 - `stub/`: the host page that imitates the studio site, for deploy previews.

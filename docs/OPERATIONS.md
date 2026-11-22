@@ -15,7 +15,7 @@ Another Netlify project outside the studio's team also builds this repo (it show
 
 | Name | Scope | What it is |
 | --- | --- | --- |
-| `GEMINI_API_KEY` | Functions | Google AI Studio key. |
+| `GEMINI_API_KEY` | Functions | Google AI Studio key. No longer used for readings (Claude only from 21 Nov 2026). It can be removed from Netlify once `ANTHROPIC_API_KEY` or `READING_SECRET` is set; kept locally for the model test. |
 | `GMAIL_USER`, `GMAIL_APP_PASSWORD` | Functions | The sending account and its 16-character app password. |
 | `VITE_APP_URL` | Builds, Functions | `https://emoujia.com` |
 | `FIREBASE_PROJECT_ID`, `FIREBASE_APP_ID`, `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_DATABASE_ID`, `FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID` | Functions | Firebase project settings. |
@@ -23,10 +23,12 @@ Another Netlify project outside the studio's team also builds this repo (it show
 | `EXPORT_SECRET` | Functions | Opens the manual export. Not set yet. |
 | `EXPORT_TO` | Functions | Optional. Where the CSV goes; defaults to `GMAIL_USER`. |
 | `REPLY_TO` | Functions | Optional. Defaults to emoujia@wondervalleyprojects.com. |
-| `READING_SECRET` | Functions | Signs each reading so the email route sends only readings this server made. Any long random string. Not set yet: until it is, the server derives one from `GEMINI_API_KEY`, and changing the Gemini key voids readings already on screen (they can no longer be emailed). |
-| `GEMINI_MODELS` | Functions | Optional. Comma-separated models to try in order. Defaults to `gemini-2.5-flash,gemini-3.5-flash`. [MODEL LIST AFTER 1 DEC] |
+| `READING_SECRET` | Functions | **Required.** Signs each reading so the email route sends only readings this server made. A long random string (32 characters or more); it is never derived from another key. Without it no reading can be made: the page says the oracle is silent and the function log says `READING_SECRET is not set`. Changing it voids readings already on screen (they can no longer be emailed). |
+| `READING_MODELS` | Functions | Optional. Comma-separated models to try in order. A name starting `claude-` goes to Anthropic; anything else goes to Google. The two can be mixed. Defaults to `claude-sonnet-5-5` alone (Japhy, 21 Nov 2026, from the model test), so no reading goes to Google. The older name `GEMINI_MODELS` is still read. |
+| `ANTHROPIC_API_KEY` | Functions | **Not set yet.** An Anthropic Console key. Until it is set, no reading can be made and the page says the oracle is silent. Anthropic has no free tier: about 1.4 cents a screenshot reading and 0.7 cents a three-emoji reading on Sonnet 5.5, measured 21 Nov 2026. Set a spending limit first (below). |
+| `CLAUDE_EFFORT` | Functions | Optional. `low` (default), `medium` or `high`: how long a Claude model thinks before it answers. Thinking is charged as output. Medium read no better than low in the test. |
 | `EMOUJIA_COM_REDIRECT` | Builds | Off unless set. `302` or `301` sends emoujia.com to the studio site. See below. |
-| `EMOUJIA_FALLBACK` | Builds | Optional. `on` or `off` forces the three-emoji reading in or out. Unset: on in deploy previews and local development, off in production. |
+| `EMOUJIA_FALLBACK` | Builds | Optional. `off` leaves the three-emoji reading out of a build. Unset: on everywhere (from 21 Nov 2026: the how-to sends everyone without an iPhone to it). |
 | `FONTS_TOKEN` | Builds | Read-only token for wvp-brand-fonts. Not set yet. See Fonts. |
 | `SECRETS_SCAN_OMIT_KEYS` | Builds | `FIREBASE_,VITE_` if Netlify's secret scanner flags the public Firebase config. |
 
@@ -68,13 +70,23 @@ The footer's "Remove me" opens an email to emoujia@wondervalleyprojects.com. Del
 | Symptom | Likely cause | What to do |
 | --- | --- | --- |
 | "The oracle has read all it can for today" | Gemini free tier quota is spent | Nothing; it resets. If it happens often, consider a paid key (which also closes the training exception). |
-| "The oracle is silent" | Gemini error, bad key, or a network problem | Netlify, Logs, Functions, `api`. Lines start `[oracle]` with the model and Google's message. Check `GEMINI_API_KEY`. |
+| "The oracle is resting" (Claude) | Claude's prepaid credit or monthly spending limit is used up | Netlify, Logs, Functions, `api`: the `[oracle]` line says which. Buy credit in the Anthropic Console, or wait for the 1st if it was the monthly limit. |
+| "One at a time" straight after choosing a screenshot | Anthropic's per-minute rate limit, or Netlify's per-visitor cap | Wait a minute. If it keeps happening with few visitors, the shared workspace's rate limit is being used by other work: see "Capping what Claude can cost". |
+| "The oracle is silent" | Gemini error, bad key, or a network problem | Netlify, Logs, Functions, `api`. Lines start `[oracle]` with the model and the company's message. Check `GEMINI_API_KEY` (and `ANTHROPIC_API_KEY` if a Claude model is listed). |
 | "One at a time" | A visitor passed the per-visitor cap | Nothing; it clears within a minute. If real visitors hit it, raise `window_limit` in `netlify.toml`. |
 | "This reading can no longer be emailed" | The reading is over 24 hours old, or `READING_SECRET` or the Gemini key changed since it was made | Nothing; read again. |
 | "The oracle couldn't find a grid" | The screenshot is not of the emoji keyboard | Nothing; the page explains. |
 | Email never arrives | Gmail app password revoked, or the account's sending limit | Netlify function logs show the SMTP error. Make a new app password. |
 | Export email missing | Service account not set | See Subscriber export. |
 | Headlines look like Barlow | Fonts not fetched | Check `FONTS_REPO`, `FONTS_TOKEN` and the build log. |
+
+## Launch day
+
+In this order, on the day the new wondervalleyprojects.com reaches production:
+
+1. Before production: move Emoujia to its own Anthropic workspace with its own monthly spend limit, make a new key there, swap it into Netlify, and delete the old key. Confirm the resting message appears when that workspace's limit is reached. (Steps under "Capping what Claude can cost".)
+2. Check `READING_SECRET` is set in Netlify (scope Functions).
+3. Turn on the emoujia.com redirect (next section).
 
 ## The emoujia.com redirect
 
@@ -109,9 +121,37 @@ Or, for an emergency, Deploys, pick the last deploy before the change, **Publish
 
 `netlify.toml` caps requests per visitor address at Netlify's edge: 3 emails in 3 minutes, and 10 requests a minute to everything else under `/api/`. Over that, Netlify answers 429 itself and the function never runs; the page says "One at a time" or, for email, asks the visitor to wait. The studio stores nothing about anyone for this. The free plan allows two such rules per project; both are used. Netlify's own rate-limit page: https://docs.netlify.com/manage/security/secure-access-to-sites/rate-limiting/
 
+## Capping what Claude can cost
+
+From Anthropic's own pages, read 21 Nov 2026 ([rate limits](https://platform.claude.com/docs/en/api/rate-limits), [paying for the API](https://support.claude.com/en/articles/8977456-how-do-i-pay-for-my-api-usage)). Japhy does these; nothing here is automated. Budget: $10 every three months. At about 1.4 cents a screenshot reading, that is about 700 readings.
+
+**Now, for the deploy preview.** The preview uses an existing key in Japhy's default Anthropic workspace. That workspace has a $25 monthly limit, shared with other things. So the cap on Emoujia is not its own yet: other work can use the limit up and put the oracle to rest, and Emoujia can use up what the other work needs. Fine for a preview that few people see. Not fine for production.
+
+**Before production** (also in the launch-day list below): move Emoujia to its own Anthropic workspace with its own monthly spend limit, make a new key there, swap it into Netlify, and delete the old key. Confirm the resting message appears when that workspace's limit is reached.
+
+How, as far as Anthropic's pages say:
+
+1. Console, Workspaces: create a workspace for Emoujia. [CONFIRM THE MENU NAMES IN THE CONSOLE]
+2. In that workspace, set a monthly spend limit. The organization-wide one is at Spend limits (`platform.claude.com/settings/spend-limits`), "Monthly spend limit", "Set limit"; a workspace has its own under the workspace's limits. [CONFIRM IN THE CONSOLE] To hold to $10 a quarter, about $3 a month.
+3. Create an API key in that workspace. In Netlify, project `emoujia`, replace the value of `ANTHROPIC_API_KEY` (scope Functions) and deploy.
+4. Delete the old key in the Console.
+5. Test the limit: set the workspace limit to its lowest value, or below what the workspace has already spent this month, ask for one reading, and see "The oracle is resting". Then set the limit back. The function log line starts `[oracle] claude-sonnet-5-5 failed:` and carries Anthropic's message.
+
+Also true: the API runs on prepaid credit (Console, Billing, "Buy credits"). With auto-reload off, the credit bought is the most the whole account can spend. Credit expires a year after it is bought.
+
+What the visitor sees:
+
+| What happened at Anthropic | The page says |
+| --- | --- |
+| The spend limit is reached, or the credit is gone | "The oracle is resting" |
+| Too many requests this minute (a rate limit) | "One at a time": wait a minute |
+| Overloaded, a bad key, anything else | "The oracle is silent" |
+
+The first row was tested on 21 Nov 2026 against faked replies, using the message Anthropic's rate-limits page gives for a reached limit. The message for used-up credit and for a workspace limit is assumed to read alike. Step 5 is the real test.
+
 ## Testing the model choice
 
-`scripts/model-test.ts` runs the grid prompt on real screenshots with every model the key can use and scores the emoji each one read. Put screenshots and an `expected.json` in `model-test/` (ignored by git), set `GEMINI_API_KEY` in `.env`, then `npx tsx scripts/model-test.ts`. These calls go to Google under that key's terms.
+`scripts/model-test.ts` runs the grid prompt on real screenshots with every model the key can use and scores the emoji each one read. Put screenshots and an `expected.json` in `model-test/` (ignored by git), set `GEMINI_API_KEY` in `.env`, then `npx tsx scripts/model-test.ts`. With `ANTHROPIC_API_KEY` in `.env` as well, it also runs Claude Haiku, Sonnet and Opus. `ONLY=model,model` narrows the list; `THREE=` followed by three emoji also measures the fallback reading. The calls go to Google or Anthropic under that key's terms, and the Anthropic ones cost money. Each run overwrites `model-test/results.json`.
 
 ## Shipping changes
 

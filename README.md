@@ -4,7 +4,7 @@ What do your emojis say about you?
 
 Emoujia reads the Frequently Used section of your emoji keyboard the way a palmist reads a hand. Upload a screenshot. Get a reading. Atmospheric, psychologically acute, slightly unnerving.
 
-A Wonder Valley Projects Lab, live at [emoujia.com](https://emoujia.com). Read by a machine, kept by no one.
+A Wonder Valley Projects Lab, live at [emoujia.com](https://emoujia.com). Read by a machine. The studio keeps no readings.
 
 ## The idea
 
@@ -13,7 +13,7 @@ Emoujia comes from a simple question: how could someone's personal data work for
 ## How it works
 
 1. You screenshot the Frequently Used section of your emoji keyboard and bring it to the page.
-2. The browser shrinks it and sends it to Google's Gemini (`gemini-2.5-flash`, falling back to `gemini-3.5-flash`), which lists the emoji and writes a reading in five parts:
+2. The browser shrinks it and sends it to Anthropic's Claude (`claude-sonnet-5-5`), which lists the emoji and writes a reading in five parts:
    - **The ruling sign**: the first emoji.
    - **The shadow**: a pattern you overlooked.
    - **The reading**: the whole grid.
@@ -24,13 +24,13 @@ Emoujia comes from a simple question: how could someone's personal data work for
 
 ## What we keep
 
-Nothing about the reading. The only thing kept is the email address of someone who checks "Subscribe for more information," which starts unchecked. The screenshot goes to Google's Gemini on the free tier, whose terms let Google use it to improve its models; the page says so under the upload button. That is a logged exception to the studio's rules, kept so the Lab stays free to run. Full account: [docs/PRIVACY.md](docs/PRIVACY.md).
+Nothing about the reading. The only thing kept is the email address of someone who checks "Subscribe for more information," which starts unchecked. The screenshot goes to Anthropic's Claude, whose terms say Anthropic may not train on it and which deletes it within 30 days unless its checks flag it; the page says so under the upload button. Full account: [docs/PRIVACY.md](docs/PRIVACY.md).
 
 ## Run it locally
 
 ```
 npm install
-cp .env.example .env   # add GEMINI_API_KEY at least
+cp .env.example .env   # add ANTHROPIC_API_KEY at least
 npm run dev            # http://localhost:3000
 ```
 
@@ -54,7 +54,7 @@ Netlify builds `main` for the `emoujia` project. `npm run build` fetches Shapiro
 
 ## Stack
 
-React 19 and Vite; Netlify Functions (Express via `serverless-http`); Google Gemini via `@google/genai`; Firestore for opted-in subscribers only; Nodemailer with Gmail. Type: Shapiro (licensed, fetched at build), Barlow and DM Mono (open licenses, in `public/fonts/`).
+React 19 and Vite; Netlify Functions (Express via `serverless-http`); Anthropic's Claude via `@anthropic-ai/sdk` (Google Gemini via `@google/genai` still wired, unused); Firestore for opted-in subscribers only; Nodemailer with Gmail. Type: Shapiro (licensed, fetched at build), Barlow and DM Mono (open licenses, in `public/fonts/`).
 
 ## License
 

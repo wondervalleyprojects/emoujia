@@ -12,7 +12,7 @@ The studio site is static (ADR-001) and serves `/lab/emoujia/`. Emoujia stays it
 visitor ── wondervalleyprojects.com/lab/emoujia/            (site's own page, site's own words)
              ├─ /lab/emoujia/embed.js    ─rewrite→  EMOUJIA/embed/emoujia.js
              ├─ /lab/emoujia/embed.css   ─rewrite→  EMOUJIA/embed/emoujia.css
-             └─ /lab/emoujia/api/*       ─rewrite→  EMOUJIA/api/*   → function → Gemini, Gmail, Firestore
+             └─ /lab/emoujia/api/*       ─rewrite→  EMOUJIA/api/*   → function → Claude, Gmail, Firestore
 ```
 
 `EMOUJIA` is the Emoujia project's own Netlify address, [EMOUJIA NETLIFY ADDRESS, e.g. https://emoujia.netlify.app]. **Never rewrite to emoujia.com**: when the emoujia.com redirect is switched on (OPERATIONS.md), emoujia.com answers every request with a redirect to the site, and the rewrites would loop.
@@ -119,7 +119,8 @@ All take and answer JSON. Every error answers `{ "error": "<plain sentence>", "c
 | `invalid_input` | 400 | The request is not what the route takes. Nothing was sent to the model. |
 | `too_large` | 413 | The body is over the route's limit. |
 | `unsigned` | 403 | `/send-reading` only: the reading was not made by this server, was changed, or is over 24 hours old. |
-| `resting` | 429 | Google's free allowance is spent. It comes back on its own (midnight Pacific). |
+| `busy` | 429 | The model's company is taking too many requests this minute. The embed says "One at a time" and asks the visitor to wait a minute. |
+| `resting` | 429 | The studio's prepaid credit or monthly spending limit at Anthropic is used up. It comes back when the studio buys credit or the month turns. |
 | (none) | 429 | Netlify's per-visitor cap. Netlify answers before the function runs; the body is not JSON. |
 | `oracle_error` | 502 | The model failed, or answered in a shape we could not read. |
 | `send_failed` | 502 | The email did not go out. |
@@ -142,13 +143,13 @@ Answer, 200:
   "kind": "grid",
   "emojis": ["😂", "🥲", "🔥"],
   "reading": "THE RULING SIGN\n...\n\nTHE SHADOW\n...\n\nTHE READING\n...\n\nYOUR FORECAST\n...\n\nTHE ESSENCE\n...",
-  "model": "gemini-2.5-flash",
+  "model": "claude-sonnet-5-5",
   "issuedAt": 1795230219199,
   "signature": "base64url"
 }
 ```
 
-`model` is the name Google gives in its answer, not the one requested. `emojis` may be empty when no grid was found; the embed then asks for a screenshot of the keyboard.
+`model` is the name the model's company gives in its answer, not the one requested. `emojis` may be empty when no grid was found; the embed then asks for a screenshot of the keyboard.
 
 ### `POST /api/read-three`
 

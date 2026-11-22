@@ -31,22 +31,27 @@ export default function Intro({ onFile, onThree, notice, threeNotice, fallback, 
           </button>
           <p className="small muted">Or drop the screenshot&nbsp;here.</p>
           {notice && <p className="small" role="alert">{notice}</p>}
-          {/* Logged exception (EMJ-001, 1 Nov 2026): free Gemini tier, disclosed here.
-              Replaced in step 3 by the notice for the tier Japhy chooses. */}
+          {/* PROPOSED, 21 Nov 2026, from the model Japhy chose: Claude Sonnet only.
+              Facts and sources: docs/PRIVACY.md. */}
           <p className="small muted measure" id="privacy">
-            Your screenshot is read by Google's Gemini, which may use it to improve its models. We keep&nbsp;nothing.
+            The part of the screenshot you send is read by Anthropic's Claude. Anthropic does not train its models on it.
+            It keeps it for up to 30 days, may look at it in that time for safety, and keeps it longer only if its checks
+            flag it: <a className="textlink" href="https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-my-organization-s-data" rel="noopener noreferrer">Anthropic's retention page</a>.
+            The studio stores neither the screenshot nor the&nbsp;reading.
           </p>
         </div>
       </section>
 
       <section className="row" aria-labelledby="emoujia-how">
         <h2 className="label" id="emoujia-how">How</h2>
-        {/* iPhone only until an Android keyboard has been tested (Japhy, 20 Nov 2026). */}
+        {/* iPhone only: no Android keyboard has been tested (Japhy, 21 Nov 2026).
+            Everyone else is sent to the three-emoji reading. The last line is PROPOSED. */}
         <ol className="small steps">
           <li>Open your emoji keyboard on your iPhone.</li>
           <li>Screenshot the Frequently Used section, all of it.</li>
           <li>Bring it here. You can crop it before it is sent. The reading takes about half a&nbsp;minute.</li>
         </ol>
+        {fallback && <p className="small muted">Not on an iPhone? Enter the three emoji you use most, just&nbsp;below.</p>}
       </section>
 
       {fallback && (
@@ -58,8 +63,9 @@ export default function Intro({ onFile, onThree, notice, threeNotice, fallback, 
             {three && <ThreeForm onRead={onThree} notice={threeNotice} />}
             {three && (
               <p className="small muted measure">
-                {/* Replaced in step 3 by the notice for the tier Japhy chooses. */}
-                [THREE EMOJI NOTICE]
+                {/* PROPOSED, 21 Nov 2026. */}
+                Only the three emoji are sent. They are read by Anthropic's Claude, on the same terms as
+                a&nbsp;screenshot.
               </p>
             )}
           </div>
@@ -70,7 +76,7 @@ export default function Intro({ onFile, onThree, notice, threeNotice, fallback, 
         <h2 className="label" id="emoujia-keep">What we keep</h2>
         <p className="small measure">
           Nothing about your reading. If you ask, we email it to you. Your email address is kept only if you check the box under
-          the email field, and you can ask us to remove it any&nbsp;time. [WHAT WE KEEP: FROM THE NOTICE]
+          the email field, and you can ask us to remove it any&nbsp;time. [WHAT WE KEEP: AFTER THE SENT MAIL CHECK ON THE PREVIEW]
         </p>
       </section>
     </>

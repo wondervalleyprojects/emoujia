@@ -2,28 +2,28 @@
 
 Plain account of where every piece of data goes. If this file and the code disagree, the code is wrong.
 
-State, 20 Nov 2026 (0.3.0): written from the code and from Google's and Netlify's terms as read that day. Not yet checked against a real Gemini call on the deploy preview; that check comes next. The public notices are waiting on Japhy's choice of the free or paid Gemini tier. They show as brackets until then.
+State, 21 Nov 2026 (0.3.0): written from the code and from Anthropic's, Google's and Netlify's terms as read on 20 and 21 Nov. Not yet checked against a real call on the deploy preview; that check comes next. On 21 Nov Japhy chose Claude Sonnet 5.5 alone, with no Google fallback; the notices below are PROPOSED from that and wait for his approval.
 
 ## The screenshot reading
 
 1. You choose a screenshot. It stays in your browser while you crop it. Only the part inside the box leaves your device, shrunk to at most 1024 pixels on the long side and turned into a JPEG. Choosing "Send the whole screenshot" sends all of it.
-2. It goes to `{api}/analyze`. On the studio site that address is on wondervalleyprojects.com and is passed, by rewrite, to Emoujia's Netlify function. The function passes it to Google's Gemini API with the reading prompt.
-3. Gemini returns the list of emoji and the reading text. The server signs them (below) and passes them back to your browser.
-4. Emoujia writes nothing to disk or to the database. Netlify's function log records the time, the method and the path of each request. If Gemini fails, it records the model's name and Google's error message. It never records the image, the emoji or the reading.
+2. It goes to `{api}/analyze`. On the studio site that address is on wondervalleyprojects.com and is passed, by rewrite, to Emoujia's Netlify function. The function passes it to Anthropic's Claude API with the reading prompt.
+3. Claude returns the list of emoji and the reading text. The server signs them (below) and passes them back to your browser.
+4. Emoujia writes nothing to disk or to the database. Netlify's function log records the time, the method and the path of each request. If Claude fails, it records the model's name and Anthropic's error message. It never records the image, the emoji or the reading.
 
 ## The three-emoji reading
 
 For someone who cannot bring a screenshot. You type the three emoji you use most.
 
 1. They go to `{api}/read-three` as three emoji and nothing else. The server refuses anything else before the model is called: no text you type ever reaches the model.
-2. The function puts the three emoji into the fallback prompt and sends it to Gemini. Nothing else about you goes with them.
+2. The function puts the three emoji into the fallback prompt and sends it to Claude. Nothing else about you goes with them.
 3. As above: the reading comes back signed, Emoujia keeps nothing, and the log records only that a request happened.
 
-## What Google does with what is sent
+## What the model's company does with what is sent
 
-Both readings go to the Gemini API under the key's terms. Read 20 Nov 2026: [Gemini API Additional Terms of Service](https://aistudio.google.com/docs/terms), effective 23 March 2026.
+From 21 Nov 2026 both readings go to Anthropic's Claude; that section is below. Until then they went to Google's Gemini on the free tier, and the Google terms are kept here for the record and in case a Gemini model is ever put back. Read 20 Nov 2026: [Gemini API Additional Terms of Service](https://aistudio.google.com/docs/terms), effective 23 March 2026.
 
-**Free tier (what Emoujia uses today):**
+**Google free tier (what Emoujia used until 21 Nov 2026):**
 
 - Google uses what is submitted, and what it answers, "to provide, improve, and develop Google products and services and machine learning technologies."
 - Human reviewers may read, annotate and process the input and output. Google first disconnects it from the account, key and project.
@@ -31,18 +31,32 @@ Both readings go to the Gemini API under the key's terms. Read 20 Nov 2026: [Gem
 - No retention period is stated.
 - Only paid services may be offered to people in the European Economic Area, Switzerland or the United Kingdom.
 
-**Paid tier (not in use; Japhy decides):**
+**Google paid tier (never used):**
 
 - Google does not use the prompts or the answers to improve its products.
 - Google logs prompts and answers "for a limited period of time," only to detect and prevent policy violations. No period is stated.
 - The paid terms do not mention human review.
 
-**Both tiers:** users of the API must be 18 or older, and an app built on it must not be aimed at, or likely to be used by, people under 18. The terms also say the API is "not for consumer use." [EMJ-001: JAPHY'S DECISION ON THESE TERMS]
+**Both Google tiers:** users of the API must be 18 or older, and an app built on it must not be aimed at, or likely to be used by, people under 18. The terms also say the API is "not for consumer use." [EMJ-001: JAPHY'S DECISION ON THESE TERMS]
 
-This is why the page said: "Your screenshot is read by Google's Gemini, which may use it to improve its models. We keep nothing." That disclosure is a logged exception (EMJ-001 Notes, allowed by Japhy Grant on 1 Nov 2026, review 1 May 2027). "We keep nothing" was retired by Public Wonder V5 (PW-V5-05). The replacement notices:
+### Anthropic's Claude (the only reading model from 21 Nov 2026; not live until the key is set in Netlify)
 
-- Screenshot reading: [SCREENSHOT NOTICE: FROM THE TIER JAPHY CHOOSES]
-- Three-emoji reading: [THREE EMOJI NOTICE: FROM THE TIER JAPHY CHOOSES]
+Japhy chose Claude Sonnet 5.5 as the only reading model on 21 Nov 2026. With the default settings no reading goes to Google; the Google terms above apply only if someone puts a Gemini model back in `READING_MODELS`. Read 21 Nov 2026: [Commercial Terms](https://www.anthropic.com/legal/commercial-terms), effective 17 June 2025; [Usage Policy](https://www.anthropic.com/legal/aup), effective 12 Nov 2026; Anthropic's privacy pages on [retention](https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-my-organization-s-data) and [training](https://privacy.claude.com/en/articles/7996868-is-my-data-used-for-model-training).
+
+- Training: "Anthropic may not train models on Customer Content from Services."
+- Kept: Anthropic deletes what is sent, and what it answers, within 30 days. If its automatic checks flag a request as breaking its usage policy, it may keep that request for up to 2 years.
+- Deleting on request: "For paid API customers, we do not support ad hoc deletion." So the studio cannot have one reading removed early.
+- Human review: the pages read do not say plainly whether staff read ordinary requests. The retention page speaks of "limited data retention and review as a part of our safety work" for some models. The notice takes the careful reading: Anthropic may look at what is sent, for safety, during the 30 days.
+- There is no free tier.
+- The United Kingdom, Switzerland and the EEA countries are on Anthropic's [Supported Regions](https://www.anthropic.com/supported-countries) list (effective 12 Nov 2026).
+- An organization that lets people under 18 use its product directly must add safeguards (age checks, filtering, a public statement of compliance). The page does not say what a general-audience product owes. [EMJ-001]
+- The terms open with "Services under these Terms are not for consumer use." Section A.1 allows using the service to power products for the customer's own end users. [EMJ-001: JAPHY'S READING OF THIS]
+- A product where people talk to an AI must say so. The casing line does.
+
+The Google free terms are why the page said: "Your screenshot is read by Google's Gemini, which may use it to improve its models. We keep nothing." That disclosure is a logged exception (EMJ-001 Notes, allowed by Japhy Grant on 1 Nov 2026, review 1 May 2027). "We keep nothing" was retired by Public Wonder V5 (PW-V5-05). With Claude alone, nothing is offered for training. Japhy closed the exception on 21 Nov 2026 (draft Register note: `docs/EMJ-001_Register-note_DRAFT.md`; decision record: `docs/adr/ADR-001.md`). The replacement notices:
+
+- Screenshot reading (PROPOSED; revised at Japhy's word, 21 Nov 2026): "The part of the screenshot you send is read by Anthropic's Claude. Anthropic does not train its models on it. It keeps it for up to 30 days, may look at it in that time for safety, and keeps it longer only if its checks flag it: Anthropic's retention page [linked]. The studio stores neither the screenshot nor the reading."
+- Three-emoji reading (PROPOSED): "Only the three emoji are sent. They are read by Anthropic's Claude, on the same terms as a screenshot."
 
 ## The reading
 

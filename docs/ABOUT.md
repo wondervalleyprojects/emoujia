@@ -14,12 +14,12 @@ That is the whole experiment: your data, working for you, for the fun of it, on 
 
 - A Wonder Valley Projects Lab, part of the studio's Lab face (experiments, instruments, readings).
 - Live at [emoujia.com](https://emoujia.com). Register ID EMJ-001.
-- Read by a machine, kept by no one. Every reading is live machine output that no person reviews, and it is labeled that way on the page and on the share card.
+- Read by a machine. The studio keeps no readings. Every reading is live machine output that no person reviews, and it is labeled that way on the page and on the share card.
 
 ## The terms you can see
 
 - **What you bring:** one screenshot of your emoji keyboard.
-- **Who reads it:** Google's Gemini model. On the free tier, Google's terms let it use what it receives to improve its models. Emoujia says so under the upload button. This is a logged exception to the studio's rule that what participants share is never offered for training, taken to keep the Lab free to run (EMJ-001, 1 Nov 2026, review 1 May 2027).
+- **Who reads it:** Anthropic's Claude (Sonnet 5.5), from 21 Nov 2026. Anthropic's terms say it may not train its models on what is sent, and it deletes it within 30 days unless its checks flag it. Until then the reader was Google's Gemini on the free tier, a logged exception to the studio's rule that what participants share is never offered for training (EMJ-001, 1 Nov 2026). Closed by Japhy Grant on 21 Nov 2026. The studio pays for each reading from a small prepaid budget; when it is spent, the oracle rests.
 - **What the studio keeps:** nothing about the reading. If you ask, the reading is emailed to you and not stored. Your email address is kept only if you check "Subscribe for more information," and one email to emoujia@wondervalleyprojects.com removes it.
 
 ## Why it lives in the Lab

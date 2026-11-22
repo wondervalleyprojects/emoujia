@@ -11,9 +11,9 @@ const EMOJI = '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-s
 // The bug (LOGO-001), inlined so the card needs no address of its own.
 const BUG = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(bugSvg)}`;
 
-// The line under READ BY A MACHINE. "KEPT BY NO ONE" is retired (PW-V5-05);
-// the card does not ship until Japhy supplies its replacement.
-export const SHARE_CARD_LINE = '[SHARE CARD LINE]';
+// The line under READ BY A MACHINE. "KEPT BY NO ONE" is retired (PW-V5-05).
+// Japhy's line, 21 Nov 2026: "Read by a machine. The studio keeps no readings."
+export const SHARE_CARD_LINE = 'THE STUDIO KEEPS NO READINGS';
 
 export interface CardFonts { label: string; display: string; mono: string }
 export function fontsFrom(el: Element): CardFonts {

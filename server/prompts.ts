@@ -3,6 +3,11 @@
 //
 // GRID_PROMPT is the screenshot reading, moved here character for character
 // from the two servers on 20 Nov 2026. Its voice is Japhy's to change.
+// 21 Nov 2026, at Japhy's word: two lines added to both prompts, after the
+// tone line. No em or en dashes, and real countries, peoples, faiths and
+// places are read with respect. The wording of both lines is PROPOSED.
+// Later the same day, after Claude Sonnet repeated the instructions aloud:
+// the "very little" line was reworded and "without saying" was added.
 //
 // threePrompt() is the fallback reading. PROPOSED, 20 Nov 2026: written from
 // the grid prompt and waiting for Japhy's approval. Its only input is three
@@ -27,6 +32,10 @@ SECOND: Generate a reading based on these emojis.
 Your reading has five sections. Write each with a plain ALL-CAPS header (no markdown), then a line break, then the body.
 
 Tone: straight face, dry edge. Matter-of-fact about strange things. Address the user directly as "you". Sprinkle relevant emojis liberally throughout the text of the reading to maintain the oracle's visual language.
+
+Never use the em dash or the en dash. Use commas, colons and full stops.
+
+A flag, or any emoji that stands for a real country, people, faith or place, is read with respect: as home, travel, pride or longing. Never as a stereotype, never as a joke at its expense, and never as a claim about its laws, money or politics. Do this without saying that you are doing it.
 
 Sections:
 1. THE RULING SIGN: One tight paragraph on the first emoji.
@@ -64,9 +73,13 @@ Your reading has four sections. Write each with a plain ALL-CAPS header (no mark
 
 Tone: straight face, dry edge. Matter-of-fact about strange things. Address the user directly as "you". Sprinkle relevant emojis liberally throughout the text of the reading to maintain the oracle's visual language.
 
+Never use the em dash or the en dash. Use commas, colons and full stops.
+
+A flag, or any emoji that stands for a real country, people, faith or place, is read with respect: as home, travel, pride or longing. Never as a stereotype, never as a joke at its expense, and never as a claim about its laws, money or politics. Do this without saying that you are doing it.
+
 Sections:
 1. THE RULING SIGN: One tight paragraph on the first emoji.
-2. THE READING: One or two short paragraphs on the three together and their order. Somewhere in it, say plainly that three emoji are a glimpse, and that the whole grid would tell you more.
+2. THE READING: One or two short paragraphs on the three together and their order. One sentence of it should concede the smallness of the sample, in an image the oracle invents for the occasion.
 3. YOUR FORECAST: One sentence direction.
 4. THE ESSENCE: One short phrase summation for a spectator. Do NOT use "You are".
 

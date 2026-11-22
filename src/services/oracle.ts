@@ -3,7 +3,8 @@
 export type Kind = 'grid' | 'three';
 export interface Reading { kind: Kind; emojis: string[]; reading: string; model: string; issuedAt: number; signature: string }
 
-export class RestingError extends Error {}   // Google's free allowance is spent
+export class RestingError extends Error {}   // the studio's budget at the model's company is spent
+export class CrowdedError extends Error {}   // the model's company is taking too many requests this minute
 export class TooManyError extends Error {}   // Netlify's per-visitor cap
 export class RefusedError extends Error {}   // the server refused the input
 
@@ -12,7 +13,11 @@ async function post(url: string, body: unknown): Promise<any> {
   let j: any = null;
   try { j = await r.json(); } catch { /* Netlify's own 429 is not JSON */ }
   if (r.ok) return j;
-  if (r.status === 429) throw j?.code === 'resting' ? new RestingError(j.error) : new TooManyError('Too many requests');
+  if (r.status === 429) {
+    if (j?.code === 'resting') throw new RestingError(j.error);
+    if (j?.code === 'busy') throw new CrowdedError(j.error);
+    throw new TooManyError('Too many requests');
+  }
   if (r.status === 400 || r.status === 403 || r.status === 413) throw new RefusedError(j?.error || `Status ${r.status}`);
   throw new Error(j?.error || `Status ${r.status}`);
 }

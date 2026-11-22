@@ -6,7 +6,8 @@
 //   invalid_input 400  the request is not what the route takes (nothing was sent to the model)
 //   too_large     413  the body is over the route's limit
 //   unsigned      403  /send-reading: the reading was not made by this server, or is over 24 hours old
-//   resting       429  Google's free allowance is spent; it comes back on its own
+//   resting       429  the studio's credit or spending limit at the model's company is used up
+//   busy          429  the model's company is taking too many requests this minute; try again shortly
 //   oracle_error  502  the model failed or answered in a shape we could not read
 //   send_failed   502  the email did not go out
 //   not_found     404
@@ -32,6 +33,7 @@ const fail = (res: Response, status: number, code: string, error: string) => res
 function oracleFail(res: Response, err: unknown) {
   if (err instanceof InputError) return fail(res, 400, 'invalid_input', err.message);
   if (err instanceof OracleError && err.code === 'resting') return fail(res, 429, 'resting', err.message);
+  if (err instanceof OracleError && err.code === 'busy') return fail(res, 429, 'busy', err.message);
   if (err instanceof OracleError) return fail(res, 502, 'oracle_error', err.message);
   console.error('[api] unexpected:', (err as any)?.message || err);
   return fail(res, 502, 'oracle_error', 'Something went wrong between here and the machine.');

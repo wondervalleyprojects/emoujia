@@ -4,7 +4,7 @@ import Crop from './components/Crop';
 import Loading from './components/Loading';
 import Reading from './components/Reading';
 import EmailForm from './components/EmailForm';
-import { readGrid, readThree, sendReading, RestingError, TooManyError, RefusedError, type Reading as ReadingT } from './services/oracle';
+import { readGrid, readThree, sendReading, RestingError, TooManyError, CrowdedError, RefusedError, type Reading as ReadingT } from './services/oracle';
 import { parseReading } from './lib/grid';
 import { shareCardDataUrl, fontsFrom } from './lib/shareCard';
 import { readAsDataUrl, loadImage } from './lib/image';
@@ -12,7 +12,7 @@ import { readAsDataUrl, loadImage } from './lib/image';
 // The whole experience, with no header, footer, masthead, light switch or page
 // title of its own: the host page supplies those. Mounted by src/embed.tsx.
 
-type View = 'idle' | 'crop' | 'reading' | 'complete' | 'resting' | 'busy' | 'error';
+type View = 'idle' | 'crop' | 'reading' | 'complete' | 'resting' | 'busy' | 'crowded' | 'error';
 
 export interface ExperienceProps {
   api: string;               // where the API lives, from the mount's data-api
@@ -49,6 +49,7 @@ export default function Experience({ api, host, buildHref, buildLabel, fallback 
   const fail = (err: unknown) => {
     if (err instanceof RestingError) return setView('resting');
     if (err instanceof TooManyError) return setView('busy');
+    if (err instanceof CrowdedError) return setView('crowded');
     if (err instanceof RefusedError) {
       setView('idle');
       if (lastKind.current === 'three') { setStartWithThree(true); setThreeNotice(err.message); } else setNotice(err.message);
@@ -172,9 +173,20 @@ export default function Experience({ api, host, buildHref, buildLabel, fallback 
           <div className="stack-tight">
             <p className="essence">The oracle has read all it can for&nbsp;today.</p>
             <p className="small measure">
-              Emoujia runs on a free allowance from Google, and today's is spent. It comes back on its own. Try again tomorrow.
-              [WHAT HAPPENED TO WHAT YOU SENT: FROM THE NOTICE]
+              {/* PROPOSED, 21 Nov 2026 */}
+              Emoujia runs on a small budget, and it is spent for now. It will be back when the studio tops it&nbsp;up.
+              The studio stored nothing you&nbsp;sent.
             </p>
+            <button type="button" className="textlink" onClick={() => reset()}>Back to the start</button>
+          </div>
+        </section>
+      )}
+      {view === 'crowded' && (
+        <section className="row">
+          <h2 className="label" ref={heading} tabIndex={-1}>One at a time</h2>
+          <div className="stack-tight">
+            {/* PROPOSED, 21 Nov 2026: the model's company is taking too many requests this minute. */}
+            <p className="small measure">The oracle has a queue this minute. Wait a minute, then try again. The studio stored nothing you&nbsp;sent.</p>
             <button type="button" className="textlink" onClick={() => reset()}>Back to the start</button>
           </div>
         </section>
@@ -193,7 +205,7 @@ export default function Experience({ api, host, buildHref, buildLabel, fallback 
         <section className="row">
           <h2 className="label" ref={heading} tabIndex={-1}>The oracle is silent</h2>
           <div className="stack-tight">
-            <p className="small measure">Something went wrong between here and the machine. Try again in a minute. [WHAT HAPPENED TO WHAT YOU SENT: FROM THE NOTICE]</p>
+            <p className="small measure">Something went wrong between here and the machine. Try again in a minute. The studio stored nothing you&nbsp;sent.</p>
             <button type="button" className="textlink" onClick={() => reset()}>Try again</button>
           </div>
         </section>

@@ -25,6 +25,12 @@ Working plan for moving Emoujia into Public Wonder as a Lab. Status: DRAFT until
 3. The fun layer: the per-grid triad band, the log-style wait, the new share card, the resting message when the free tier runs out. (Done, 0.2.0.)
 4. Integration: `/lab/emoujia` on the new site by rewrite, canonical URL and JSON-LD, a Lab Note, the Register row. Emoujia's side built in 0.3.0 (20 Nov 2026): the embed, the fallback reading, signed email, caps, the redirect prepared and off, `docs/INTEGRATION.md`. On a deploy preview, waiting on Japhy's decisions. The site's side (rewrites, the mount, the page's own words) is the site developer's, from INTEGRATION.md.
 
+## Open items
+
+- **Android.** No Android screenshot has been tested (21 Nov 2026), so the how-to promises iPhone only and sends everyone else to the three-emoji reading. To close: one Gboard screenshot (and Samsung's keyboard if possible) with the emoji confirmed, run through `scripts/model-test.ts`; then the how-to can name Android.
+- **The reading email and "The studio keeps no readings".** A reading someone asks to have emailed stays in the studio's Gmail Sent Mail until deleted (PRIVACY.md). The share card line and the "What we keep" text need either that copy deleted as a routine, or words that allow for it. [JAPHY]
+- **Anthropic's own workspace and limit** before production (OPERATIONS.md, Launch day).
+
 ## For Japhy to do in consoles
 
 - Fonts: a read-only token for the existing private repo wondervalleyprojects/wvp-brand-fonts, set in Netlify as `FONTS_TOKEN`. Steps in `docs/OPERATIONS.md`.

@@ -51,7 +51,7 @@ export default function Reading({ kind, emojis, reading, essence, model, heading
         <h3 className="label">Read by</h3>
         <div className="stack-tight">
           <p className="small">The words below are the machine's own. No person reviewed&nbsp;them.</p>
-          <p className="casing">CASING · MODEL {(model || 'GEMINI').toUpperCase()} · EDITS 0</p>
+          <p className="casing">CASING · MODEL {(model || 'UNNAMED').toUpperCase()} · EDITS 0</p>
         </div>
       </section>
       {sections.map((s) => (
