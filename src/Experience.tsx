@@ -171,7 +171,7 @@ export default function Experience({ api, host, buildHref, buildLabel, fallback 
         <section className="row">
           <h2 className="label" ref={heading} tabIndex={-1}>The oracle is resting</h2>
           <div className="stack-tight">
-            <p className="essence">The oracle has read all it can for&nbsp;today.</p>
+            <p className="essence">The oracle has read all it can for&nbsp;now.</p>
             <p className="small measure">
               {/* PROPOSED, 21 Nov 2026 */}
               Emoujia runs on a small budget, and it is spent for now. It will be back when the studio tops it&nbsp;up.

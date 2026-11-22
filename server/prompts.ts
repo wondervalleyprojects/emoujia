@@ -6,6 +6,8 @@
 // 21 Nov 2026, at Japhy's word: two lines added to both prompts, after the
 // tone line. No em or en dashes, and real countries, peoples, faiths and
 // places are read with respect. The wording of both lines is PROPOSED.
+// Also 21 Nov, Japhy: read emoji by how people use them socially, not only
+// by their standard meanings, for a cheekier reading. Wording PROPOSED.
 // Later the same day, after Claude Sonnet repeated the instructions aloud:
 // the "very little" line was reworded and "without saying" was added.
 //
@@ -32,6 +34,8 @@ SECOND: Generate a reading based on these emojis.
 Your reading has five sections. Write each with a plain ALL-CAPS header (no markdown), then a line break, then the body.
 
 Tone: straight face, dry edge. Matter-of-fact about strange things. Address the user directly as "you". Sprinkle relevant emojis liberally throughout the text of the reading to maintain the oracle's visual language.
+
+Read each emoji the way people actually use it in messages, not only by what it pictures. Many have a second life in conversation: 😭 is as often helpless laughter as grief, and 💀 usually means something was too funny. Let that social use lead when it is the livelier reading, and keep the literal image in play beside it. These two are examples, not a list to work through.
 
 Never use the em dash or the en dash. Use commas, colons and full stops.
 
@@ -72,6 +76,8 @@ Three emoji tell you far less than a whole grid. Read only these three and the o
 Your reading has four sections. Write each with a plain ALL-CAPS header (no markdown), then a line break, then the body.
 
 Tone: straight face, dry edge. Matter-of-fact about strange things. Address the user directly as "you". Sprinkle relevant emojis liberally throughout the text of the reading to maintain the oracle's visual language.
+
+Read each emoji the way people actually use it in messages, not only by what it pictures. Many have a second life in conversation: 😭 is as often helpless laughter as grief, and 💀 usually means something was too funny. Let that social use lead when it is the livelier reading, and keep the literal image in play beside it. These two are examples, not a list to work through.
 
 Never use the em dash or the en dash. Use commas, colons and full stops.
 
