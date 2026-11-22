@@ -7,7 +7,8 @@
     "dev": "tsx server.ts",
     "build": "node scripts/fetch-fonts.mjs && vite build && vite build --config vite.embed.config.ts && node scripts/postbuild.mjs",
     "preview": "vite preview",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "check:subscribe": "tsx scripts/check-subscribe.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.12.0",

@@ -82,7 +82,7 @@ Its label (PROPOSED, 20 Nov 2026, for Japhy to approve or replace): "Tell me abo
 
 What happens to the address, exactly, so the label can be checked against it:
 
-1. Saved in Firestore (`subscribers/{email}`) with the time and the source, "emoujia".
+1. Saved in Firestore (`subscribers/{email}`) with the time and the source, "emoujia". If the save fails, the page says so under "Sent" and offers to try again; the address is then not on the list.
 2. On the 1st and 15th of each month a scheduled job emails the whole list as a CSV to the studio's Gmail (`EXPORT_TO`, or `GMAIL_USER`). That email also stays in Gmail.
 3. A person imports the CSV into Japhy Grant's Substack by hand. From then on Substack holds the address under its own terms and sends what Japhy publishes there. [HOW OFTEN THE SUBSTACK SENDS, AND WHAT]
 4. To be removed, email emoujia@wondervalleyprojects.com with "Remove me" (the footer link on emoujia.com does this). The address is deleted from Firestore and from Substack. Copies in old CSV emails in Gmail stay until deleted. [CONFIRM: THE OLD CSV EMAILS ARE DELETED TOO]

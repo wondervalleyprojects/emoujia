@@ -42,7 +42,9 @@ function oracleFail(res: Response, err: unknown) {
 const withTimeout = <T>(p: Promise<T>, ms: number, label: string) =>
   Promise.race([p, new Promise<never>((_, reject) => setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms))]);
 
-export function apiRouter() {
+// `save` is replaceable only so scripts/check-subscribe.ts can test both
+// answers without a database. The servers pass nothing.
+export function apiRouter({ save = saveSubscriber }: { save?: (email: string) => Promise<void> } = {}) {
   const router = express.Router();
 
   // The screenshot reading.
@@ -90,24 +92,30 @@ export function apiRouter() {
     const body = reading.split(/THE ESSENCE/i)[0].split('\n').map((l: string) => l.trim()).join('\n').trim();
     const appUrl = process.env.VITE_APP_URL || 'https://emoujia.com';
 
+    // The address is kept only when the person checked the box. The answer
+    // says whether it was: `subscribed` is true only when the save finished.
+    // A failed save does not stop the email, but it is never reported as a
+    // success (Japhy, 21 Nov 2026: the box does what it says, or says it
+    // could not).
+    let subscribed = false;
+    if (optIn === true) {
+      try { await withTimeout(save(email), 2000, 'Subscriber save'); subscribed = true; }
+      catch (dbError: any) { console.warn('[db] subscriber save failed; sending the email, answering subscribed: false:', dbError?.message || dbError); }
+    }
+
     try {
-      // The address is kept only when the person checked the box.
-      if (optIn === true) {
-        try { await withTimeout(saveSubscriber(email), 2000, 'Subscriber save'); }
-        catch (dbError: any) { console.warn('[db] subscriber save failed; sending the email anyway:', dbError?.message || dbError); }
-      }
       const gmailUser = process.env.GMAIL_USER;
-      if (!gmailUser || !process.env.GMAIL_APP_PASSWORD) return res.json({ success: true, warning: 'Email configuration missing on server.' });
+      if (!gmailUser || !process.env.GMAIL_APP_PASSWORD) return res.json({ success: true, subscribed, warning: 'Email configuration missing on server.' });
       const result = await sendMail({
         from: `"Emoujia, a Wonder Valley Projects Lab" <${gmailUser}>`,
         replyTo: process.env.REPLY_TO || 'emoujia@wondervalleyprojects.com',
         to: email,
         ...buildReadingEmail(body, essence, appUrl, kind as ReadingKind),
       }, cardBase64);
-      res.json({ success: true, fallback: result.fallback });
+      res.json({ success: true, subscribed, fallback: result.fallback });
     } catch (err: any) {
       console.error('[send-reading] failed:', err?.message || err);
-      fail(res, 502, 'send_failed', 'The email did not go out. Try again in a minute.');
+      res.status(502).json({ error: 'The email did not go out. Try again in a minute.', code: 'send_failed', subscribed });
     }
   });
 

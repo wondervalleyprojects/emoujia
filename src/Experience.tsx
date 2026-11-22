@@ -115,8 +115,8 @@ export default function Experience({ api, host, buildHref, buildLabel, fallback 
   };
 
   const sendEmail = async (email: string, optIn: boolean) => {
-    if (!result) return;
-    try { await sendReading(api, result, email, optIn, card); }
+    if (!result) return { subscribed: false };
+    try { return await sendReading(api, result, email, optIn, card); }
     catch (err: any) {
       if (err instanceof TooManyError) throw new Error('That is a lot of emails in a few minutes. Wait a little and try again.');
       throw new Error(err?.message || 'The email did not go out. Try again in a minute.');

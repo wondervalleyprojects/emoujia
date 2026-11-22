@@ -29,5 +29,8 @@ function asReading(j: any): Reading {
 
 export const readGrid = async (api: string, image: string) => asReading(await post(`${api}/analyze`, { image }));
 export const readThree = async (api: string, emojis: string[]) => asReading(await post(`${api}/read-three`, { emojis }));
-export const sendReading = (api: string, r: Reading, email: string, optIn: boolean, card: string | null) =>
+// `subscribed` is true when a checked box's address was saved, false when it
+// was not (or the box was not checked). An older server leaves it out.
+export interface SendResult { success: boolean; subscribed?: boolean; fallback?: boolean }
+export const sendReading = (api: string, r: Reading, email: string, optIn: boolean, card: string | null): Promise<SendResult> =>
   post(`${api}/send-reading`, { email, optIn, kind: r.kind, emojis: r.emojis, reading: r.reading, issuedAt: r.issuedAt, signature: r.signature, card });

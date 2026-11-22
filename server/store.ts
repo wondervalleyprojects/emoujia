@@ -8,7 +8,15 @@ import { getFirestore as getClientFirestore, doc, setDoc, serverTimestamp } from
 import { cert, getApps, initializeApp as initializeAdminApp } from 'firebase-admin/app';
 import { getFirestore as getAdminFirestore, FieldValue } from 'firebase-admin/firestore';
 
-const databaseId = process.env.FIREBASE_DATABASE_ID || '(default)';
+// Emoujia's database is a named one, never the project's "(default)". With
+// FIREBASE_DATABASE_ID unset or blank, refuse to save rather than write the
+// address somewhere no one looks. (A wrong id fails on its own: Firestore
+// answers NOT_FOUND. That is how the 21 Nov 2026 failures were found.)
+export function databaseId(): string {
+  const id = (process.env.FIREBASE_DATABASE_ID || '').trim();
+  if (!id) throw new Error('FIREBASE_DATABASE_ID is not set, so the subscriber was not saved. Set it in Netlify to the Firestore database id (Firestore, the database picker).');
+  return id;
+}
 
 // Admin credentials, either way:
 // - FIREBASE_CLIENT_EMAIL + FIREBASE_PRIVATE_KEY (with FIREBASE_PROJECT_ID).
@@ -33,12 +41,13 @@ function adminDb() {
   const credential = adminCredential();
   if (!credential) return null;
   const app = getApps()[0] || initializeAdminApp({ credential });
-  return getAdminFirestore(app, databaseId);
+  return getAdminFirestore(app, databaseId());
 }
 
 let clientDb: ReturnType<typeof getClientFirestore> | null = null;
 function fallbackClientDb() {
   if (!clientDb) {
+    const id = databaseId();
     const app = initializeClientApp({
       projectId: process.env.FIREBASE_PROJECT_ID,
       appId: process.env.FIREBASE_APP_ID,
@@ -47,12 +56,13 @@ function fallbackClientDb() {
       storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
       messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
     });
-    clientDb = getClientFirestore(app, databaseId);
+    clientDb = getClientFirestore(app, id);
   }
   return clientDb;
 }
 
 export async function saveSubscriber(email: string): Promise<void> {
+  databaseId(); // throws first, before any SDK is touched
   const id = email.trim().toLowerCase();
   const admin = adminDb();
   if (admin) {

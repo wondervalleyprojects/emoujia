@@ -35,12 +35,22 @@ The names never change and carry no hash. A change reaches the site within five 
 ### 1. Rewrites (site's `netlify.toml` or `public/_redirects`)
 
 ```
-/lab/emoujia/embed.js     EMOUJIA/embed/emoujia.js     200
-/lab/emoujia/embed.css    EMOUJIA/embed/emoujia.css    200
-/lab/emoujia/api/*        EMOUJIA/api/:splat           200
+/lab/emoujia/embed.js            EMOUJIA/embed/emoujia.js                         200
+/lab/emoujia/embed.css           EMOUJIA/embed/emoujia.css                        200
+/lab/emoujia/api/send-reading    EMOUJIA/.netlify/functions/api/send-reading      200
+/lab/emoujia/api/*               EMOUJIA/.netlify/functions/api/:splat            200
 ```
 
-In `netlify.toml` form, with the per-visitor cap the site should carry on its side too (see Limits, "Whose address is counted"):
+**The API rewrites go straight to Emoujia's function**, `/.netlify/functions/api/...`, not to `EMOUJIA/api/:splat`. Emoujia's own `/api/*` is itself a rewrite, and Netlify follows only one rewrite from one site to another: a request to `EMOUJIA/api/...` arrives at a path with no file and is not rewritten again, so it never reaches the function. (Found on Emoujia's deploy preview 2, 21 Nov 2026.)
+
+**So the site carries both caps.** Emoujia's caps live on its own `/api/*` rewrites, and a request that goes straight to the function skips them. The site's rules are then the only caps, with the email rule first, since Netlify uses the first rule that matches:
+
+- `/lab/emoujia/api/send-reading`: 3 per 180 seconds per visitor.
+- `/lab/emoujia/api/*`: 10 per 60 seconds per visitor.
+
+The free plan allows two rate-limit rules per project, so these two use the site's whole allowance. The studio site does this on its PR #6.
+
+In `netlify.toml` form:
 
 ```toml
 [[redirects]]
@@ -55,9 +65,20 @@ In `netlify.toml` form, with the per-visitor cap the site should carry on its si
   status = 200
   force = true
 
+# Email first: Netlify uses the first rule that matches.
+[[redirects]]
+  from = "/lab/emoujia/api/send-reading"
+  to = "EMOUJIA/.netlify/functions/api/send-reading"
+  status = 200
+  force = true
+  [redirects.rate_limit]
+    window_limit = 3
+    window_size = 180
+    aggregate_by = ["ip", "domain"]
+
 [[redirects]]
   from = "/lab/emoujia/api/*"
-  to = "EMOUJIA/api/:splat"
+  to = "EMOUJIA/.netlify/functions/api/:splat"
   status = 200
   force = true
   [redirects.rate_limit]
@@ -182,14 +203,21 @@ Request, at most 1 MB:
 
 `kind`, `emojis`, `reading`, `issuedAt` and `signature` are returned exactly as the reading route gave them. The server checks the signature (an HMAC over all four) and refuses anything changed, unsigned or over 24 hours old with `unsigned`. The essence in the email is taken from the signed text, not from the browser. `card` is optional and must be a JPEG under 600 KB. `optIn: true` keeps the address (PRIVACY.md); anything else does not.
 
-Answer, 200: `{ "success": true, "fallback": false }`. `fallback: true` means the email went without the card.
+Answer, 200: `{ "success": true, "subscribed": true, "fallback": false }`.
+
+- `subscribed` says whether the address was kept. `true` only when `optIn` was `true` and the save to Firestore finished within 2 seconds. `false` when the box was not checked, or when it was and the save failed or timed out. A failed save does not stop the email: the reading still goes, and the answer says `subscribed: false`. The function log has a `[db] subscriber save failed` line with the reason.
+- `fallback: true` means the email went without the card.
+
+When `optIn` was `true` and `subscribed` is `false`, the embed says so under "Sent", plainly, with a button to try again (which sends the reading again, since there is no route that only subscribes). The box does what its label says, or the visitor is told it could not.
+
+A `send_failed` answer (502) also carries `subscribed`, since the save comes before the email.
 
 ## Limits
 
 | Limit | Value | Where |
 | --- | --- | --- |
-| Requests per visitor, all routes but email | 10 per 60 seconds, then 429 | Emoujia's `netlify.toml` |
-| Requests per visitor, `/send-reading` | 3 per 180 seconds, then 429 | Emoujia's `netlify.toml` |
+| Requests per visitor, all routes but email | 10 per 60 seconds, then 429 | Emoujia's `netlify.toml` (emoujia.com); the site's own rewrite (studio site) |
+| Requests per visitor, `/send-reading` | 3 per 180 seconds, then 429 | Emoujia's `netlify.toml` (emoujia.com); the site's own rewrite (studio site) |
 | Body, `/analyze` | 4 MB | `server/api.ts` |
 | Image, decoded | 3 MB | `server/readings.ts` |
 | Body, `/read-three` | 1 KB | `server/api.ts` |
@@ -198,11 +226,11 @@ Answer, 200: `{ "success": true, "fallback": false }`. `fallback: true` means th
 | Time to a reading | [MEASURED ON THE DEPLOY PREVIEW] | |
 | Function time limit | Netlify's for synchronous functions; [CONFIRM ON THE PREVIEW] | Netlify |
 
-**Whose address is counted.** Netlify counts per visitor address at its edge, and stores nothing the studio can see. Netlify's documentation does not say which address it counts when a request arrives through another Netlify site's rewrite; it may be the site's, which would put every visitor in one bucket. So the site should carry the same cap on its own `/lab/emoujia/api/*` rewrite, where the visitor's address is certain. The free plan allows two rules per project.
+**Whose address is counted.** Netlify counts per visitor address at its edge, and stores nothing the studio can see. The two caps in the table are Emoujia's, on emoujia.com's own `/api/*`. Through the studio site, requests go straight to Emoujia's function (see "What the site needs", 1) and skip them, so the site carries the same two caps on its own rewrites, where the visitor's address is certain.
 
 ## Testing it
 
-- On any Emoujia deploy preview, `/stub/lab/emoujia/` is a host page with the site's tokens and light rules copied in, a stricter policy than the site's, hostile global styles and the same rewrites as above. In the console, `emoujiaProbe()` reports the tokens and fonts the embed actually received.
+- On any Emoujia deploy preview, `/stub/lab/emoujia/` is a host page with the site's tokens and light rules copied in, a stricter policy than the site's, hostile global styles, and rewrites straight to the function as above (without the caps; the stub never ships live). In the console, `emoujiaProbe()` reports the tokens and fonts the embed actually received.
 - Locally: `npm run build`, then `NODE_ENV=production npm run dev` and open `http://localhost:3000/stub/lab/emoujia/`.
 - The stub never ships to production (`scripts/postbuild.mjs`).
 

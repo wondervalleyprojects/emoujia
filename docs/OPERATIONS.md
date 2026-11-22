@@ -18,8 +18,9 @@ Another Netlify project outside the studio's team also builds this repo (it show
 | `GEMINI_API_KEY` | Functions | Google AI Studio key. No longer used for readings (Claude only from 21 Nov 2026). It can be removed from Netlify once `ANTHROPIC_API_KEY` or `READING_SECRET` is set; kept locally for the model test. |
 | `GMAIL_USER`, `GMAIL_APP_PASSWORD` | Functions | The sending account and its 16-character app password. |
 | `VITE_APP_URL` | Builds, Functions | `https://emoujia.com` |
-| `FIREBASE_PROJECT_ID`, `FIREBASE_APP_ID`, `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_DATABASE_ID`, `FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID` | Functions | Firebase project settings. |
-| `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` | Functions | From a service account key. Needed for the export. Not set yet. |
+| `FIREBASE_PROJECT_ID`, `FIREBASE_APP_ID`, `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID` | Functions | Firebase project settings. |
+| `FIREBASE_DATABASE_ID` | Functions | **Required for subscribing.** The id of Emoujia's own Firestore database, `ai-studio-ba8645f8-a857-4aaf-afb0-8024a7560e64` (the old `firebase-applet-config.json`; Firebase console, Firestore, the database picker). Copy it whole: a wrong id fails every save with `NOT_FOUND` (see "Subscriber saves failing, 21 Nov 2026"). Unset or blank, the server refuses to save rather than write to the project's `(default)` database, and the visitor is told the address was not saved. |
+| `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` | Functions | From a service account key. Needed for the export, and so saves go through the admin SDK, which fails fast and plainly. Without them the server saves through the client SDK, which retries a failure until the 2-second limit and depends on the public Firestore rules. Not set yet. |
 | `EXPORT_SECRET` | Functions | Opens the manual export. Not set yet. |
 | `EXPORT_TO` | Functions | Optional. Where the CSV goes; defaults to `GMAIL_USER`. |
 | `REPLY_TO` | Functions | Optional. Defaults to emoujia@wondervalleyprojects.com. |
@@ -76,9 +77,25 @@ The footer's "Remove me" opens an email to emoujia@wondervalleyprojects.com. Del
 | "One at a time" | A visitor passed the per-visitor cap | Nothing; it clears within a minute. If real visitors hit it, raise `window_limit` in `netlify.toml`. |
 | "This reading can no longer be emailed" | The reading is over 24 hours old, or `READING_SECRET` or the Gemini key changed since it was made | Nothing; read again. |
 | "The oracle couldn't find a grid" | The screenshot is not of the emoji keyboard | Nothing; the page explains. |
+| "Your address could not be saved for news of new labs" under "Sent" | The subscriber save failed or took over 2 seconds; the reading still went | Netlify, Logs, Functions, `api`: the `[db] subscriber save failed` line gives the reason. `NOT_FOUND` means `FIREBASE_DATABASE_ID` is wrong; "FIREBASE_DATABASE_ID is not set" means it is missing. Fix it, redeploy, and check one checked box reaches Firestore. |
 | Email never arrives | Gmail app password revoked, or the account's sending limit | Netlify function logs show the SMTP error. Make a new app password. |
 | Export email missing | Service account not set | See Subscriber export. |
 | Headlines look like Barlow | Fonts not fetched | Check `FONTS_REPO`, `FONTS_TOKEN` and the build log. |
+
+## Subscriber saves failing, 21 Nov 2026
+
+**What happened.** On 21 Nov 2026, testing the studio site's /lab/emoujia/ against Emoujia's deploy preview 2, a checked subscribe box answered "Sent" at 17:21 and 18:29 PST, but nothing reached Firestore. The function log (request `a1cf40da`) showed the Firestore client SDK's `GrpcConnection RPC 'Write' ... Code: 5 NOT_FOUND` four times, then `[db] subscriber save failed; sending the email anyway: Subscriber save timed out after 2000ms`, then the email going out.
+
+**Why.** In the Netlify project `emoujia`, `FIREBASE_DATABASE_ID` (the same in every context, set about six months earlier) is `ai-studio-ba8645f8-a857-4aaf-afb0-8024a7560e6`, one character short of the real database, `ai-studio-ba8645f8-a857-4aaf-afb0-8024a7560e64`. Firestore answers that no such database exists. `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY` are not set, so the server writes through the client SDK, which retries `NOT_FOUND` until the 2-second limit. The route then sent the email and answered success, and the page said "Sent" with nothing about the address. Subscriptions on emoujia.com have likely failed the same way since that variable was set; not confirmed, since Netlify keeps function logs for 24 hours.
+
+**What changed in the code** (0.3.0, PR #2):
+
+- `/send-reading` answers `subscribed: true | false`. The email still goes either way.
+- The embed says plainly, under "Sent", when a checked box could not be saved, with a button to try again (wording PROPOSED).
+- `server/store.ts` refuses to save when `FIREBASE_DATABASE_ID` is unset or blank, instead of writing to `(default)`.
+- `npm run check:subscribe` checks all of this without a database or mail.
+
+**What Japhy changes** (Netlify, project `emoujia`; also in the launch-day list): correct `FIREBASE_DATABASE_ID`; set `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY`. Nothing in Firebase changes.
 
 ## Launch day
 
@@ -86,7 +103,10 @@ In this order, on the day the new wondervalleyprojects.com reaches production:
 
 1. Before production: move Emoujia to its own Anthropic workspace with its own monthly spend limit, make a new key there, swap it into Netlify, and delete the old key. Confirm the resting message appears when that workspace's limit is reached. (Steps under "Capping what Claude can cost".)
 2. Check `READING_SECRET` is set in Netlify (scope Functions).
-3. Turn on the emoujia.com redirect (next section).
+3. Correct `FIREBASE_DATABASE_ID` in Netlify (all contexts) to `ai-studio-ba8645f8-a857-4aaf-afb0-8024a7560e64`, the whole id. It reads one character short today.
+4. Set `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY` (scope Functions, marked secret; steps under "Subscriber export").
+5. Redeploy, then check one checked box on a reading: the page shows only "Sent", and the address is in Firestore under `subscribers` in that database.
+6. Turn on the emoujia.com redirect (next section).
 
 ## The emoujia.com redirect
 
@@ -119,7 +139,7 @@ Or, for an emergency, Deploys, pick the last deploy before the change, **Publish
 
 ## Per-visitor caps
 
-`netlify.toml` caps requests per visitor address at Netlify's edge: 3 emails in 3 minutes, and 10 requests a minute to everything else under `/api/`. Over that, Netlify answers 429 itself and the function never runs; the page says "One at a time" or, for email, asks the visitor to wait. The studio stores nothing about anyone for this. The free plan allows two such rules per project; both are used. Netlify's own rate-limit page: https://docs.netlify.com/manage/security/secure-access-to-sites/rate-limiting/
+`netlify.toml` caps requests per visitor address at Netlify's edge: 3 emails in 3 minutes, and 10 requests a minute to everything else under `/api/`. Over that, Netlify answers 429 itself and the function never runs; the page says "One at a time" or, for email, asks the visitor to wait. The studio stores nothing about anyone for this. The free plan allows two such rules per project; both are used. These caps sit on emoujia.com's own `/api/*` rewrites. The studio site reaches the function directly (one rewrite between sites is all Netlify follows), so it carries the same two caps on its own `/lab/emoujia/api/` rewrites ([Integration](INTEGRATION.md)). Netlify's own rate-limit page: https://docs.netlify.com/manage/security/secure-access-to-sites/rate-limiting/
 
 ## Capping what Claude can cost
 
