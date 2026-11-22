@@ -1,5 +1,7 @@
 # Emoujia in the Wonder Valley Projects Lab
 
+**Paused, 1 Nov 2026, by Japhy. Resumed 20 Nov 2026.** Phase 1 is live. Phases 2 and 3 are built and waiting in PR #2. Phase 4, Emoujia's side, is built in 0.3.0 in the same pull request.
+
 Working plan for moving Emoujia into Public Wonder as a Lab. Status: DRAFT until Japhy signs it.
 
 ## Decisions so far (1 Nov 2026)
@@ -18,12 +20,20 @@ Working plan for moving Emoujia into Public Wonder as a Lab. Status: DRAFT until
 
 ## Phases
 
-1. Make it true: stop storing readings, uncheck opt-in, lock the export, real bug, no-JS page, README. (Done on this branch.)
-2. Lab skin: tokens, Shapiro and DM Mono, Ink and white grounds, no cards or glows, labels in the margin, Record line, casing line, V4 motion.
-3. The fun layer: the per-grid triad band, the log-style wait, the new share card, the resting message when the free tier runs out.
-4. Integration: `/lab/emoujia` on the new site by rewrite, canonical URL and JSON-LD, a Lab Note, the Register row.
+1. Make it true: stop storing readings, uncheck opt-in, lock the export, real bug, no-JS page, README. (Done, merged 1 Nov 2026, PR #1.)
+2. Lab skin: tokens, Shapiro and DM Mono, Ink and white grounds, no cards or glows, labels in the margin, Record line, casing line, V4 motion. (Done, 0.2.0.)
+3. The fun layer: the per-grid triad band, the log-style wait, the new share card, the resting message when the free tier runs out. (Done, 0.2.0.)
+4. Integration: `/lab/emoujia` on the new site by rewrite, canonical URL and JSON-LD, a Lab Note, the Register row. Emoujia's side built in 0.3.0 (20 Nov 2026): the embed, the fallback reading, signed email, caps, the redirect prepared and off, `docs/INTEGRATION.md`. On a deploy preview, waiting on Japhy's decisions. The site's side (rewrites, the mount, the page's own words) is the site developer's, from INTEGRATION.md.
+
+## Open items
+
+- **Android.** No Android screenshot has been tested (21 Nov 2026), so the how-to promises iPhone only and sends everyone else to the three-emoji reading. To close: one Gboard screenshot (and Samsung's keyboard if possible) with the emoji confirmed, run through `scripts/model-test.ts`; then the how-to can name Android.
+- **The reading email and "The studio keeps no readings".** A reading someone asks to have emailed stays in the studio's Gmail Sent Mail until deleted (PRIVACY.md). The share card line and the "What we keep" text need either that copy deleted as a routine, or words that allow for it. Decided 21 Nov 2026 (Japhy): deleted as a routine, daily (`scripts/gmail-clear-sent.gs`), and the notices name the limit, up to a day. Whether the share card line "The studio keeps no readings" stands as is: [JAPHY].
+- **Anthropic's own workspace and limit** before production (OPERATIONS.md, Launch day).
 
 ## For Japhy to do in consoles
+
+- Fonts: a read-only token for the existing private repo wondervalleyprojects/wvp-brand-fonts, set in Netlify as `FONTS_TOKEN`. Steps in `docs/OPERATIONS.md`.
 
 - Firebase: delete the existing `readings` collection, publish the new `firestore.rules`, create a service account key and put its `client_email` and `private_key` into Netlify as `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY`.
 - Netlify: set `EXPORT_SECRET` (and `EXPORT_TO` if the CSV should go somewhere other than `GMAIL_USER`).

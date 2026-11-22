@@ -1,118 +1,82 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Mail, Check, Loader2, Send } from 'lucide-react';
 
-interface EmailFormProps {
-  onSend: (email: string, optIn: boolean) => Promise<void>;
-}
+interface Props { onSend: (email: string, optIn: boolean) => Promise<{ subscribed?: boolean }> }
 
-export default function EmailForm({ onSend }: EmailFormProps) {
+export default function EmailForm({ onSend }: Props) {
   const [email, setEmail] = useState('');
   const [optIn, setOptIn] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
+  // The box was checked and the server says the address was not saved.
+  const [notSaved, setNotSaved] = useState(false);
+  const [retrying, setRetrying] = useState(false);
+  const [savedOnRetry, setSavedOnRetry] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
-
-    setStatus('sending');
-    setError(null);
-
-    try {
-      await onSend(email, optIn);
-      setStatus('success');
-    } catch (err: any) {
-      console.error(err);
-      setStatus('error');
-      setError(err?.message || "Something went wrong. The oracle's messengers are tied up.");
-    }
+  // Returns true when a checked box's address was saved.
+  const send = async (subscribe: boolean) => {
+    const out = await onSend(email, subscribe);
+    // Only a plain false counts: an older server does not answer `subscribed`.
+    setNotSaved(subscribe && out?.subscribed === false);
+    return subscribe && out?.subscribed === true;
   };
 
-  return (
-    <div className="w-full max-w-2xl mx-auto px-4 mt-12 mb-24">
-      <div className="bg-white/[0.03] backdrop-blur-md border border-white/10 rounded-2xl p-6 md:p-8">
-        <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-[#7b2fc9]/20 rounded-lg">
-          <Mail className="w-5 h-5 text-[#7b2fc9]" />
-        </div>
-        <div>
-          <h3 className="text-sm font-mono uppercase tracking-widest text-[#7b2fc9]">Preserve the Omens</h3>
-          <p className="text-xs opacity-50 font-mono tracking-tighter">Email me my reading and share card</p>
-        </div>
-      </div>
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || status === 'sending') return;
+    setStatus('sending'); setError(null);
+    try { await send(optIn); setStatus('sent'); }
+    catch (err: any) { setStatus('error'); setError(err?.message || 'The email did not go out. Try again in a minute.'); }
+  };
 
-      <AnimatePresence mode="wait">
-        {status === 'success' ? (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center py-6 text-center"
-          >
-            <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
-              <Check className="w-6 h-6 text-green-500" />
-            </div>
-            <p className="text-sm font-serif italic text-white/90">The courier is on their way. Check your inbox.</p>
-          </motion.div>
-        ) : (
-          <motion.form
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            onSubmit={handleSubmit}
-            className="space-y-6"
-          >
-            <div className="space-y-2">
-              <input
-                type="email"
-                required
-                placeholder="messenger@oracle.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-3 text-sm focus:outline-none focus:border-[#7b2fc9]/50 transition-colors font-mono"
-              />
-            </div>
+  // Try the save again. There is no route that only subscribes, so this sends
+  // the reading again too, and the words say so.
+  const retry = async () => {
+    if (retrying) return;
+    setRetrying(true); setError(null);
+    try { setSavedOnRetry(await send(true)); }
+    catch (err: any) { setError(err?.message || 'That did not go through. Try again in a minute.'); }
+    finally { setRetrying(false); }
+  };
 
-            <label className="flex items-start gap-3 cursor-pointer group">
-              <div className="relative flex items-center justify-center mt-1">
-                <input
-                  type="checkbox"
-                  checked={optIn}
-                  onChange={(e) => setOptIn(e.target.checked)}
-                  className="peer appearance-none w-4 h-4 rounded border border-white/20 checked:bg-[#7b2fc9] checked:border-[#7b2fc9] transition-all"
-                />
-                <Check className="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" />
-              </div>
-              <span className="text-[11px] opacity-50 group-hover:opacity-80 transition-opacity leading-tight font-mono tracking-tighter">
-                Subscribe for more information.
-                <span className="block mt-1 opacity-70">We keep your email only if you check this. Your reading is sent, then not kept.</span>
-              </span>
-            </label>
-
-            <button
-              type="submit"
-              disabled={status === 'sending'}
-              className="w-full flex items-center justify-center gap-2 bg-[#7b2fc9] hover:bg-[#8e44e0] disabled:opacity-50 disabled:hover:bg-[#7b2fc9] text-white py-4 rounded-xl text-xs font-mono uppercase tracking-[0.2em] transition-colors"
-            >
-              {status === 'sending' ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Summoning Messengers...
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4" />
-                  Send Reading
-                </>
-              )}
+  if (status === 'sent') {
+    return (
+      <div className="stack-tight">
+        <p role="status">Sent. Check your inbox. The reading is gone from here.</p>
+        {notSaved && (
+          <div className="stack-tight" role="alert">
+            {/* PROPOSED, 21 Nov 2026: a checked box whose save failed. The box must do what it says, or say it could not. */}
+            <p className="small measure">
+              Your address could not be saved for news of new labs, so you are not on that list. Trying again sends the reading a second&nbsp;time.
+            </p>
+            <button type="button" className="textlink" onClick={retry} aria-disabled={retrying}>
+              {retrying ? 'Trying again' : 'Try again to subscribe'}
             </button>
-
-            {status === 'error' && (
-              <p className="text-[10px] text-red-400 font-mono text-center">{error}</p>
-            )}
-          </motion.form>
+          </div>
         )}
-      </AnimatePresence>
-    </div>
-  </div>
-);
+        {savedOnRetry && <p className="small" role="status">{/* PROPOSED */}Saved this time. You are on the list for new labs.</p>}
+        {error && <p className="small" role="alert">{error}</p>}
+      </div>
+    );
+  }
+  return (
+    <form onSubmit={submit} className="stack">
+      <label htmlFor="emoujia-email" className="small">Your email address</label>
+      <input id="emoujia-email" className="field" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <label className="check small">
+        <input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} />
+        {/* PROPOSED label (Japhy, 20 Nov 2026), to approve or replace. It must say exactly what happens to the address.
+            Second line's last sentence PROPOSED, 21 Nov 2026 (Sent Mail cleared daily). */}
+        <span>
+          Tell me about new labs. It comes from Japhy Grant's Substack, a few times a year, along with his other&nbsp;writing.
+          <span className="muted block">We keep your email only if you check this. Otherwise it goes when the studio's copy of this email is deleted, within a&nbsp;day.</span>
+        </span>
+      </label>
+      <div>
+        <button type="submit" className="btn" aria-disabled={status === 'sending'}>
+          {status === 'sending' ? 'Sending' : 'Email me my reading'} <span className="arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+      {status === 'error' && <p className="small" role="alert">{error}</p>}
+    </form>
+  );
 }

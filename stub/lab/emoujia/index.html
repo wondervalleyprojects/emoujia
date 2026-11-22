@@ -1,0 +1,36 @@
+<!doctype html>
+<!-- A stub host page: it imitates the studio site's Lab page around the embed,
+     under a stricter policy than the site's (no inline script or style at all),
+     with the site's tokens and light rules copied in, and hostile global styles
+     (stub/host.css) that must not reach inside the mount. Deploy previews only. -->
+<html lang="en" data-site-face="lab">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>Stub host · Emoujia embed</title>
+    <link rel="stylesheet" href="/stub/tokens.css">
+    <link rel="stylesheet" href="/stub/light.css">
+    <link rel="stylesheet" href="/stub/host.css">
+    <script src="/stub/stub.js" defer></script>
+    <script src="/stub/lab/emoujia/embed.js" defer></script>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="bar"><span>Wonder Valley Projects</span><span>Practice Worlds Lab Contact</span></div>
+      <p class="kicker label">LAB · SMALL EXPERIMENTS. REAL QUESTIONS.</p>
+      <h1>What do your emojis say about you?</h1>
+      <div class="probe">
+        Stub host. Light:
+        <button type="button" data-theme-choice="day">Day</button>
+        <button type="button" data-theme-choice="night">Night</button>
+        <button type="button" data-theme-choice="auto">Auto</button>
+        <span id="probe-out" aria-live="polite"></span>
+      </div>
+      <section>
+        <div data-emoujia data-api="/stub/lab/emoujia/api" data-css="/stub/lab/emoujia/embed.css" data-build-href="/stub/lab/emoujia/#build" data-build-label="Build with the Lab"></div>
+      </section>
+      <footer id="build">Stub footer. The host page's own words stand when scripts are off.</footer>
+    </div>
+  </body>
+</html>

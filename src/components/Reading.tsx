@@ -1,59 +1,66 @@
-import { motion } from 'motion/react';
-import { Footer } from './Footer';
+import React from 'react';
+import { formatDate, parseReading } from '../lib/grid';
+import TraceBand from './TraceBand';
+import RecordLine from './RecordLine';
+import type { Kind } from '../services/oracle';
 
-interface ReadingProps {
-  reading: string;
-}
+interface Props { kind: Kind; emojis: string[]; reading: string; essence: string; model: string; headingRef: React.RefObject<HTMLHeadingElement | null> }
 
-export default function Reading({ reading }: ReadingProps) {
-  // Parsing the reading into sections based on the prompt's ALL-CAPS headers
-  const sections = reading.split(/(THE RULING SIGN|THE SHADOW|THE READING|YOUR FORECAST|THE ESSENCE)/g);
-  
-  const parsedSections = [];
-  for (let i = 1; i < sections.length; i += 2) {
-    const header = sections[i];
-    // Trim and clean leading/trailing whitespace including indentation
-    const content = sections[i + 1]?.trim().replace(/^[ \t]+/gm, ''); 
-    if (header && content && header !== 'THE ESSENCE') {
-      parsedSections.push({ header, content });
-    }
-  }
+const LABELS: Record<string, string> = {
+  'THE RULING SIGN': 'Ruling sign',
+  'THE SHADOW': 'Shadow',
+  'THE READING': 'The reading',
+  'YOUR FORECAST': 'Forecast',
+};
 
+export default function Reading({ kind, emojis, reading, essence, model, headingRef }: Props) {
+  const sections = parseReading(reading).filter((s) => s.header !== 'THE ESSENCE');
+  const three = kind === 'three';
   return (
-    <div className="w-full max-w-2xl mx-auto px-4 py-12 relative">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8 }}
-        className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 md:p-12 shadow-2xl relative overflow-hidden"
-      >
-        {/* Decorative corner elements */}
-        <div className="absolute top-0 left-0 w-24 h-24 border-t border-l border-white/20 rounded-tl-[2rem] pointer-events-none" />
-        <div className="absolute bottom-0 right-0 w-24 h-24 border-b border-r border-white/20 rounded-br-[2rem] pointer-events-none" />
-        
-        <div className="space-y-16">
-          {parsedSections.map((section, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * index }}
-              className="space-y-4 relative"
-            >
-              <h2 className="font-mono text-xs uppercase tracking-tighter text-[#7b2fc9]">
-                {section.header}
-              </h2>
-              <div className={`leading-relaxed text-lg ${section.header === 'YOUR FORECAST' ? 'text-xl md:text-2xl italic text-white font-medium mb-8' : 'opacity-90 font-serif'}`}>
-                 {section.content.split('\n').map((para, k) => (
-                   <p key={k} className="mb-4">{para}</p>
-                 ))}
-              </div>
-            </motion.div>
-          ))}
+    <article aria-labelledby="emoujia-reading-title">
+      <TraceBand emojis={emojis} />
+      <div className="masthead">
+        <p className="label">Wonder Valley Projects Lab</p>
+        <h2 className="label" id="emoujia-reading-title" ref={headingRef} tabIndex={-1}>{three ? 'Emoujia, a short reading' : 'Emoujia, a reading'}</h2>
+        <p className="label">{formatDate()}</p>
+      </div>
+
+      {three && (
+        <section className="row">
+          <h3 className="label">Three emoji</h3>
+          {/* PROPOSED: says plainly, every time, that this is not the full reading. */}
+          <p className="small measure">Three emoji tell the oracle less than a whole grid. This is the short reading, not the full&nbsp;one.</p>
+        </section>
+      )}
+      <section className="row">
+        <h3 className="label">Ruling sign</h3>
+        <p className="ruling emoji" aria-label={`Your ruling sign: ${emojis[0]}`}>{emojis[0]}</p>
+      </section>
+      {essence && (
+        <section className="row">
+          <h3 className="label">Essence</h3>
+          <p className="essence">{essence}</p>
+        </section>
+      )}
+      <section className="row">
+        <h3 className="label">{three ? 'Your three' : 'The grid'}</h3>
+        <p className="grid-emoji emoji">{emojis.map((e, i) => <span key={i}>{e}</span>)}</p>
+      </section>
+
+      <section className="row">
+        <h3 className="label">Read by</h3>
+        <div className="stack-tight">
+          <p className="small">The words below are the machine's own. No person reviewed&nbsp;them.</p>
+          <p className="casing">CASING · MODEL {(model || 'UNNAMED').toUpperCase()} · EDITS 0</p>
         </div>
-      </motion.div>
-      
-      <Footer />
-    </div>
+      </section>
+      {sections.map((s) => (
+        <section className="row" key={s.header}>
+          <h3 className="label">{LABELS[s.header] || s.header}</h3>
+          <div className="machine">{s.content.split(/\n+/).map((p, k) => <p key={k}>{p}</p>)}</div>
+        </section>
+      ))}
+      <RecordLine />
+    </article>
   );
 }

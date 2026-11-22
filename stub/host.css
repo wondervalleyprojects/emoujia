@@ -1,0 +1,31 @@
+/* The stub host's own styles. Two jobs: look roughly like the studio site's
+   Lab page, and try to break the embed. The second block is deliberately
+   hostile: if any of it shows up inside the mount, isolation has failed. */
+
+/* The site's fonts, by the site's family names (fonts.generated.css), served
+   from this project's /fonts/shapiro/ instead of the site's /fonts/. */
+@font-face { font-family: "Shapiro"; src: url("/fonts/shapiro/Shapiro75Heavy.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Shapiro Wide"; src: url("/fonts/shapiro/Shapiro75HeavyWide.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Shapiro Text"; src: url("/fonts/shapiro/Shapiro45WelterText.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "DM Mono"; src: url("/fonts/DMMono-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "DM Mono"; src: url("/fonts/DMMono-500.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+:root { font-synthesis: none; }
+
+html, body { background: var(--pw-role-ground); color: var(--pw-role-text); }
+body { margin: 0; font-family: var(--pw-font-text); font-size: var(--pw-type-body); line-height: var(--pw-type-body-lh); }
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.bar { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; font-family: var(--pw-font-display); }
+.kicker { font-family: var(--pw-font-label); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pw-role-muted); }
+h1 { font-family: var(--pw-font-display); font-weight: 400; font-size: clamp(40px, 7vw, 88px); line-height: 1; margin: 16px 0 24px; max-width: 14ch; }
+.probe { border: 1px solid var(--pw-role-rule); padding: 12px; margin: 24px 0; font-size: 15px; }
+.probe button { min-height: 44px; }
+footer { padding: 48px 0; color: var(--pw-role-muted); font-size: 15px; }
+
+/* Hostile. The site would never do this; a careless host might. */
+div { font-family: "Comic Sans MS", cursive !important; letter-spacing: 0.2em; color: lime; text-transform: lowercase; }
+.wrap > div, .bar, .probe, footer { font-family: var(--pw-font-text) !important; letter-spacing: normal; color: var(--pw-role-text); text-transform: none; }
+button { background: hotpink; border-radius: 20px; font-size: 30px; }
+h2 { font-size: 60px; color: red; }
+p { margin: 3em; }
+.row, .label, .btn, .bracket, .machine { background: yellow !important; color: black !important; }
+* { box-sizing: content-box; }

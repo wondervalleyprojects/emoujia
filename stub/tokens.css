@@ -1,0 +1,88 @@
+/* Copied unchanged from wvp-studio-site src/styles/tokens.css on 20 Nov 2026 (branch pass-3/next, a5a4131), for the stub host only. The site's file is the source; refresh this copy when it changes. */
+/* Public Wonder tokens 2027.5, Version 4
+   RECORD · STUDIO · PW-009 · 30 OCT 2026 · JG + MACHINE ASSIST · SIGNED
+   2027.5 (31 Oct 2026): --pw-role-accent-text (Worlds day small text takes Creosote), ring strokes (a lit ring is always thicker),
+   light set by sun elevation, and the pen (--pw-motion-plot) named for bands and data plotting.
+   Core holds raw values. Roles say what a value is for. Each face, and each world, fills the roles.
+   Components use the --pw-role-* tokens only. Set data-face on a wrapper to switch.
+   Every motion token goes to 0 under prefers-reduced-motion. */
+:root{
+  --pw-color-studio-blue:#133284;
+  --pw-color-signal:#FA3A6B;
+  --pw-color-signal-deep:#D11E50;
+  --pw-color-sundown:#F5B46C;
+  --pw-color-amber:#E8872A;
+  --pw-color-amber-deep:#A85A10;
+  --pw-color-cream:#EDE3D0;
+  --pw-color-creosote:#6E4B2A;
+  --pw-color-night:#1C1410;
+  --pw-color-ink:#0A0E2A;
+  --pw-color-body:#23284A;
+  --pw-color-muted:#3B4266;
+  --pw-color-tint:#EDF0FA;
+  --pw-color-rule:#D5D9E8;
+  --pw-color-white:#FFFFFF;
+  --pw-font-display:'Shapiro', 'Arial Black', Arial, sans-serif;
+  --pw-font-label:'Shapiro Wide', Arial, sans-serif;
+  --pw-font-text:'Shapiro Text', Arial, sans-serif;
+  --pw-font-mono:'DM Mono', 'Courier New', monospace;
+  --pw-font-docs-fallback:'Barlow', Arial, sans-serif;
+  --pw-type-editorial:clamp(56px, 12vw, 236px);
+  --pw-type-editorial-lh:0.96;
+  --pw-type-heading:40px;
+  --pw-type-heading-lh:1.05;
+  --pw-type-subhead:28px;
+  --pw-type-subhead-lh:1.15;
+  --pw-type-block:22px;
+  --pw-type-block-lh:1.2;
+  --pw-type-body:18px;
+  --pw-type-body-lh:1.5;
+  --pw-type-label:12px;
+  --pw-type-label-tracking:0.12em;
+  --pw-type-measure:65ch;
+  --pw-tap-min:44px;
+  --pw-space-1:8px;
+  --pw-space-2:16px;
+  --pw-space-3:24px;
+  --pw-space-4:32px;
+  --pw-space-6:48px;
+  --pw-space-8:64px;
+  --pw-space-12:96px;
+  --pw-rule-thin:2px;
+  --pw-rule-mid:4px;
+  --pw-rule-thick:8px;
+  --pw-radius-none:0;
+  --pw-motion-instant:0ms;
+  --pw-motion-snap:80ms;
+  --pw-motion-tactile:150ms;
+  --pw-motion-step:240ms;
+  --pw-motion-structural:320ms;
+  --pw-motion-plot:1200ms;
+  --pw-motion-pen:linear;
+  --pw-motion-ease:cubic-bezier(0.16, 1, 0.3, 1);
+  --pw-sheet-offset:8px;
+  --pw-sheet-tab-reach:10px;
+  --pw-sheet-arrow-nudge:4px;
+  --pw-sheet-bracket-open:6px;
+  --pw-sheet-bracket-underline:3px;
+  --pw-layer-page:0;
+  --pw-layer-bar:10;
+  --pw-layer-overlay:20;
+  --pw-record-deck:24px;
+  --pw-record-web-min:13px;
+  --pw-record-web:15px;
+  --pw-record-print-min:7pt;
+  --pw-ring-stroke:5.8;
+  --pw-ring-stroke-lit:14.4;
+  --pw-light-twilight-from:-6deg;
+  --pw-light-twilight-to:6deg;
+}
+@media (prefers-reduced-motion: reduce){:root{--pw-motion-snap:0ms;--pw-motion-tactile:0ms;--pw-motion-step:0ms;--pw-motion-structural:0ms;--pw-motion-plot:0ms;}}
+[data-face="practice-day"],:root{--pw-role-ground:#FFFFFF;--pw-role-text:#0A0E2A;--pw-role-muted:#3B4266;--pw-role-accent:#133284;--pw-role-accent-text:#133284;--pw-role-rule:#D5D9E8;--pw-role-focus:#133284;}
+[data-face="practice-dusk"]{--pw-role-ground:#133284;--pw-role-text:#FFFFFF;--pw-role-muted:#F5B46C;--pw-role-accent:#F5B46C;--pw-role-accent-text:#F5B46C;--pw-role-rule:#3A55A8;--pw-role-focus:#FFFFFF;}
+[data-face="practice-night"]{--pw-role-ground:#0A0E2A;--pw-role-text:#FFFFFF;--pw-role-muted:#B4BAD6;--pw-role-accent:#F5B46C;--pw-role-accent-text:#F5B46C;--pw-role-rule:#2C2C44;--pw-role-focus:#FFFFFF;}
+[data-face="worlds-day"]{--pw-role-ground:#EDE3D0;--pw-role-text:#1C1410;--pw-role-muted:#6E4B2A;--pw-role-accent:#A85A10;--pw-role-accent-text:#6E4B2A;--pw-role-rule:#CDBFA4;--pw-role-focus:#1C1410;}
+[data-face="worlds-night"]{--pw-role-ground:#1C1410;--pw-role-text:#EDE3D0;--pw-role-muted:#F5B46C;--pw-role-accent:#E8872A;--pw-role-accent-text:#E8872A;--pw-role-rule:#3A2C22;--pw-role-focus:#EDE3D0;}
+[data-face="lab-day"]{--pw-role-ground:#FFFFFF;--pw-role-text:#0A0E2A;--pw-role-muted:#3B4266;--pw-role-accent:#D11E50;--pw-role-accent-text:#D11E50;--pw-role-rule:#D5D9E8;--pw-role-focus:#0A0E2A;}
+[data-face="lab-night"]{--pw-role-ground:#0A0E2A;--pw-role-text:#FFFFFF;--pw-role-muted:#B4BAD6;--pw-role-accent:#FA3A6B;--pw-role-accent-text:#FA3A6B;--pw-role-rule:#2C2C44;--pw-role-focus:#FFFFFF;}
+/* A world fills the same roles with its own values: [data-face="world-code"]{--pw-role-ground:...} */

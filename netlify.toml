@@ -7,7 +7,43 @@
   # Ship firebase-admin as a plain node module instead of bundling it.
   external_node_modules = ["firebase-admin"]
 
+# The API. Two caps per visitor address, counted at Netlify's edge; the studio
+# stores nothing about anyone. The free plan allows two rules per project, so
+# the email route has its own tighter rule and every other route shares one.
+# Over the cap Netlify answers 429 itself and the function never runs.
+[[redirects]]
+  from = "/api/send-reading"
+  to = "/.netlify/functions/api/send-reading"
+  status = 200
+  force = true
+  [redirects.rate_limit]
+    window_limit = 3
+    window_size = 180
+    aggregate_by = ["ip", "domain"]
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"
   status = 200
+  force = true
+  [redirects.rate_limit]
+    window_limit = 10
+    window_size = 60
+    aggregate_by = ["ip", "domain"]
+
+# The embed: fixed names, short cache, so a change reaches the site within
+# five minutes and the site never chases a hashed file name.
+[[headers]]
+  for = "/embed/*"
+  [headers.values]
+    Cache-Control = "public, max-age=300"
+    X-Content-Type-Options = "nosniff"
+
+# The stub host page (deploy previews only; see scripts/postbuild.mjs). Its
+# policy is stricter than the studio site's: no inline script or style at all.
+[[headers]]
+  for = "/stub/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    X-Robots-Tag = "noindex, nofollow"
+    Referrer-Policy = "no-referrer"
